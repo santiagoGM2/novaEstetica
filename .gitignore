@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.local
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.log
+
+# Archived originals — heavy .mov files preserved locally but no need to ship
+public/assets/videos/originals/
+
+# Playwright audit screenshots — local diagnostic output
+audit/

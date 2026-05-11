@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Nova Estética Premium — Protocolo Evolución Láser. Depilación láser de alto estándar en Cali. Agenda tu diagnóstico de piel gratuito.">
+<title>Nova — Protocolo Evolución Láser</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<style>
+/* ============================================================
+   ARCHIVO DE REFERENCIA
+   El CSS completo está embebido en este archivo HTML monolítico
+   (versión original que el cliente compartió). En la migración a
+   React/Vite vive en src/styles/index.css ya componentizado.
+   ============================================================ */
+
+/* TOKENS, RESET, COMPONENTES — ver src/styles/index.css en el repo */
+:root {
+  --bg: oklch(8% 0.010 58);
+  --bg-warm: oklch(10% 0.012 58);
+  --bg-elevated: oklch(12% 0.010 60);
+  --bg-card: oklch(14% 0.010 62);
+  --bg-card-2: oklch(16% 0.011 62);
+  --gold: oklch(76% 0.118 82);
+  --gold-dim: oklch(68% 0.098 80);
+  --gold-pale: oklch(84% 0.088 84);
+  --gold-subtle: oklch(76% 0.118 82 / 0.13);
+  --gold-glow: oklch(76% 0.118 82 / 0.25);
+  --gold-border: oklch(76% 0.118 82 / 0.30);
+  --rose: oklch(66% 0.10 14);
+  --rose-dim: oklch(58% 0.085 14);
+  --rose-subtle: oklch(66% 0.10 14 / 0.10);
+  --rose-glow: oklch(66% 0.10 14 / 0.18);
+  --text: oklch(94% 0.007 76);
+  --text-2: oklch(66% 0.011 64);
+  --text-3: oklch(44% 0.009 60);
+  --border: oklch(22% 0.009 60);
+  --border-dim: oklch(17% 0.007 60);
+  --ff-serif: 'Cormorant Garamond', Georgia, serif;
+  --ff-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body { background: var(--bg); color: var(--text); font-family: var(--ff-sans); line-height: 1.65; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; padding: 0; }
+
+/* NOTA: el CSS completo (~700 líneas) se preserva sin cambios en
+   src/styles/index.css del proyecto migrado. Aquí solo se muestran
+   tokens y reset para mantener este archivo como referencia legible. */
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     ARCHIVO DE REFERENCIA — Landing original monolítica
+     =========================================================
+     Esta es la versión HTML estática que sirvió como punto de
+     partida. La versión productiva vive componentizada en:
+
+       src/App.jsx
+       src/components/{Header,Hero,Conciencia,SideStep,Quiz,
+                       SocialProof,Calendar,Footer,Fabs}.jsx
+       src/styles/index.css
+       src/hooks/useScrollReveal.js
+       api/lead.js  (serverless function GHL)
+
+     Mantener este archivo solo como referencia visual y de copy.
+     ========================================================= -->
+
+<div id="scroll-progress" aria-hidden="true"></div>
+
+<header class="header">
+  <a href="#" class="logo" aria-label="Nova — inicio">
+    <span class="logo-wordmark">NOVA</span>
+    <div class="logo-rule" aria-hidden="true"></div>
+  </a>
+  <a href="#calendar" class="btn-nav">Ver Disponibilidad VIP</a>
+</header>
+
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-arc" aria-hidden="true">
+    <div class="hero-arc-ring"></div>
+    <div class="hero-arc-ring-2"></div>
+    <div class="hero-arc-ring-3"></div>
+  </div>
+  <span class="hero-location" aria-hidden="true">Ciudad Jardín, Cali</span>
+  <div class="hero-scroll" aria-hidden="true">
+    <div class="hero-scroll-line"></div>
+    <span class="hero-scroll-text">Scroll</span>
+  </div>
+  <div class="hero-content">
+    <span class="hero-pre">Protocolo Evolución Láser — Nova Estética Premium</span>
+    <div class="hero-title-wrap">
+      <div class="hero-beam" aria-hidden="true"></div>
+      <h1 class="hero-title" id="hero-heading">
+        ¿Por qué una mujer con tu nivel de éxito sigue negociando su agenda con una cuchilla cada mañana?
+      </h1>
+    </div>
+    <p class="hero-sub">
+      No es falta de tiempo; es que estás usando un método del siglo pasado para una piel que merece el estándar del futuro. Tu piel no necesita más cuidados, necesita una <strong>Evolución de Identidad</strong>.
+    </p>
+    <a href="#quiz" class="btn-primary hero-cta">Iniciar mi Diagnóstico de Piel Premium</a>
+  </div>
+</section>
+
+<section class="conciencia" aria-labelledby="conciencia-heading">
+  <div class="conciencia-inner">
+    <div class="conciencia-head">
+      <div>
+        <span class="section-label">Conciencia de estándar</span>
+        <h2 class="section-title" id="conciencia-heading">
+          Lo que tu piel revela de tu estándar de vida.
+        </h2>
+      </div>
+      <p class="conciencia-desc">
+        Cada elección que haces sobre tu cuerpo es una declaración silenciosa sobre quién eres. Las mujeres que operan en tu nivel no toleran soluciones provisionales.
+      </p>
+    </div>
+    <div class="pain-points">
+      <div class="pain-point"><span class="pain-point-num">01</span><p class="pain-point-body">Sentir vergüenza por vello visible en una reunión o evento social <em>no es opcional para ti.</em></p></div>
+      <div class="pain-point"><span class="pain-point-num">02</span><p class="pain-point-body">La irritación de la cuchilla y la esclavitud de la cera son "fastidios" que <em>ya no tienes por qué tolerar.</em></p></div>
+      <div class="pain-point"><span class="pain-point-num">03</span><p class="pain-point-body">El 95% de las mujeres premium eligen su método de depilación por estatus y libertad, no solo por estética.<span class="dato-tag">Dato destacado</span></p></div>
+    </div>
+    <a href="#quiz" class="btn-outline">Quiero estar Siempre Lista</a>
+  </div>
+</section>
+
+<section class="side-step" aria-labelledby="sidestep-heading">
+  <div class="side-step-inner">
+    <div class="side-step-head">
+      <div>
+        <span class="section-label">Protocolos complementarios</span>
+        <h2 class="section-title" id="sidestep-heading">Tu Evolución no termina en la piel suave.</h2>
+      </div>
+      <a href="#quiz" class="btn-ghost">Ver Protocolos VIP</a>
+    </div>
+    <div class="services-grid">
+      <div class="service-card"><span class="service-card-idx">01 — Faciales</span><h3 class="service-card-name">Para rostros que<br>proyectan seguridad.</h3><p class="service-card-desc">Tratamientos diseñados para reflejar la misma confianza que proyectas en cualquier sala.</p><span class="service-card-note">Consultar disponibilidad tras tu diagnóstico de láser</span></div>
+      <div class="service-card"><span class="service-card-idx">02 — Cejas &amp; Pestañas</span><h3 class="service-card-name">Diseño de mirada ejecutiva.</h3><p class="service-card-desc">Una mirada que comunica antes de que digas una sola palabra.</p><span class="service-card-note">Consultar disponibilidad tras tu diagnóstico de láser</span></div>
+      <div class="service-card"><span class="service-card-idx">03 — Corporales</span><h3 class="service-card-name">Escultura corporal High-End.</h3><p class="service-card-desc">Protocolo de remodelación para quienes exigen resultados de alto rendimiento.</p><span class="service-card-note">Consultar disponibilidad tras tu diagnóstico de láser</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="quiz" class="quiz-section" aria-labelledby="quiz-heading">
+  <div class="quiz-inner">
+    <div class="quiz-header">
+      <span class="section-label">Diagnóstico personalizado</span>
+      <h2 class="section-title" id="quiz-heading">Tu piel merece<br><em>una consulta a tu medida.</em></h2>
+    </div>
+    <div class="quiz-progress">
+      <div class="quiz-progress-step active"><div class="quiz-progress-dot">1</div></div>
+      <div class="quiz-progress-line"></div>
+      <div class="quiz-progress-step"><div class="quiz-progress-dot">2</div></div>
+      <div class="quiz-progress-line"></div>
+      <div class="quiz-progress-step"><div class="quiz-progress-dot">3</div></div>
+      <div class="quiz-progress-line"></div>
+      <div class="quiz-progress-step"><div class="quiz-progress-dot">4</div></div>
+    </div>
+
+    <div id="quiz-container">
+      <div class="quiz-step active" data-step="1">
+        <p class="quiz-question">¿Qué zona de tu cuerpo merece prioridad hoy?</p>
+        <div class="zone-grid">
+          <button class="zone-btn" data-value="Axilas"><span class="zone-btn-icon">A</span><span class="zone-btn-label">Axilas</span></button>
+          <button class="zone-btn" data-value="Bikini"><span class="zone-btn-icon">B</span><span class="zone-btn-label">Bikini</span></button>
+          <button class="zone-btn" data-value="Piernas"><span class="zone-btn-icon">P</span><span class="zone-btn-label">Piernas</span></button>
+          <button class="zone-btn" data-value="Rostro"><span class="zone-btn-icon">R</span><span class="zone-btn-label">Rostro</span></button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="2">
+        <p class="quiz-question">¿Cuántas horas al mes recuperas si dejas de depender de la cuchilla?</p>
+        <div class="time-grid">
+          <button class="time-btn" data-value="2-4 horas"><div><div class="time-btn-label">2 – 4 horas</div><div class="time-btn-sub">Rutina básica</div></div><div class="time-btn-icon"></div></button>
+          <button class="time-btn" data-value="5-8 horas"><div><div class="time-btn-label">5 – 8 horas</div><div class="time-btn-sub">Piernas + zonas extra</div></div><div class="time-btn-icon"></div></button>
+          <button class="time-btn" data-value="8+ horas"><div><div class="time-btn-label">Más de 8 horas</div><div class="time-btn-sub">Protocolo completo</div></div><div class="time-btn-icon"></div></button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="3">
+        <p class="quiz-question">¿Qué es más importante para ti?</p>
+        <div class="priority-grid">
+          <button class="priority-btn" data-value="precio"><div class="priority-btn-heading">Una oferta barata</div><div class="priority-btn-sub">Precio por encima de todo lo demás.</div></button>
+          <button class="priority-btn featured" data-value="calidad"><div class="priority-btn-heading">Una atención personalizada que respete mi piel</div><div class="priority-btn-sub">Resultados duraderos y un estándar que refleje quién soy.</div></button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="4">
+        <p class="quiz-question">Déjanos tu WhatsApp para enviarte los resultados de tu diagnóstico y tu invitación VIP.</p>
+        <form class="quiz-form" novalidate>
+          <input class="quiz-input" type="text" name="nombre" placeholder="Tu nombre" required>
+          <input class="quiz-input" type="tel" name="whatsapp" placeholder="+57 300 000 0000" required>
+          <button type="submit" class="btn-primary quiz-submit">Recibir mi Diagnóstico VIP</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="quiz-success" id="quiz-success">
+      <div class="quiz-success-icon">✓</div>
+      <p class="quiz-success-title">Diagnóstico registrado.</p>
+      <p class="quiz-success-text">Recibirás tu invitación VIP por WhatsApp. Ahora elige tu horario.</p>
+      <a href="#calendar" class="btn-primary">Asegurar mi Invitación VIP</a>
+    </div>
+  </div>
+</section>
+
+<section class="social-proof" aria-labelledby="proof-heading">
+  <span class="section-label" id="proof-heading">Lo que dicen nuestras clientas</span>
+  <div class="testimonials">
+    <article class="testimonial">
+      <p class="testimonial-quote">Por fin encontré un lugar en Ciudad Jardín que entiende mi ritmo de vida.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">V</div>
+        <div><p class="testimonial-name">Valentina M.</p><p class="testimonial-role">Gerente Comercial — Cali</p></div>
+      </div>
+    </article>
+    <article class="testimonial">
+      <p class="testimonial-quote">Estar siempre lista para el gimnasio, para una reunión, para cualquier cosa — eso no tiene precio.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">C</div>
+        <div><p class="testimonial-name">Carolina R.</p><p class="testimonial-role">Empresaria — Ciudad Jardín</p></div>
+      </div>
+    </article>
+  </div>
+  <div class="trust-badges">
+    <div class="trust-badge"><div class="trust-badge-icon">★</div><p class="trust-badge-text">Tecnología Alemana</p></div>
+    <div class="trust-badge"><div class="trust-badge-icon">⛨</div><p class="trust-badge-text">Ambiente Sanitario Premium</p></div>
+    <div class="trust-badge"><div class="trust-badge-icon">◉</div><p class="trust-badge-text">Atención Especializada</p></div>
+  </div>
+</section>
+
+<section id="calendar" class="calendar-section" aria-labelledby="calendar-heading">
+  <span class="section-label">Agenda tu cita</span>
+  <h2 class="section-title" id="calendar-heading">Agenda tu Diagnóstico de Piel Premium<br>— Elige tu horario ahora.</h2>
+  <div class="calendar-wrap">
+    <div class="calendar-loading" id="calendar-loading">
+      <div class="loading-spinner"></div>
+      <p class="calendar-loading-text">Cargando tu calendario...</p>
+      <p class="calendar-loading-sub">Si el calendario no aparece en unos segundos, <a href="https://wa.me/573000000000" target="_blank" rel="noopener">escríbenos por WhatsApp</a>.</p>
+    </div>
+    <div class="calendar-iframe-wrap">
+      <iframe src="https://api.leadconnectorhq.com/widget/booking/xVUu1c8gHzw3AooU5lDC" style="width:100%;border:none;overflow:hidden;" scrolling="no" id="xVUu1c8gHzw3AooU5lDC_1777779423767" title="Agenda tu cita — Nova Estética Premium" loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+<script src="https://link.msgsndr.com/js/form_embed.js" type="text/javascript"></script>
+
+<!-- ============== FOOTER (reconstruido desde CSS + estructura) ============== -->
+<footer class="footer">
+  <div class="footer-content">
+    <span class="footer-eyebrow">Cupo limitado</span>
+    <h2 class="footer-headline">Solo <span class="spots">5 valoraciones premium</span> disponibles esta semana.</h2>
+    <a href="#calendar" class="btn-primary">Reclamar mi Valoración Gratuita y asegurar mi cupo</a>
+    <div class="footer-bottom">
+      <p class="footer-meta">© Nova Estética Premium — Ciudad Jardín, Cali</p>
+      <p class="footer-meta">Tecnología Alemana · Atención Especializada</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============== FABS (reconstruido desde CSS) ============== -->
+<div class="fabs">
+  <a href="https://wa.me/573000000000?text=Hola%20Nova%2C%20quiero%20asegurar%20mi%20invitaci%C3%B3n%20VIP" class="fab fab-wa" target="_blank" rel="noopener">
+    <span class="fab-label">Hablar por WhatsApp</span>
+    <span class="fab-icon" aria-hidden="true">●</span>
+  </a>
+  <a href="#calendar" class="fab fab-cta">
+    <span class="fab-label">Asegurar mi Invitación VIP</span>
+    <span class="fab-icon" aria-hidden="true">→</span>
+  </a>
+</div>
+
+<script>
+  // Scroll progress
+  document.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    document.getElementById('scroll-progress').style.width = pct + '%';
+  });
+  // Calendar loading dismiss on iframe load
+  document.querySelector('.calendar-iframe-wrap iframe')?.addEventListener('load', () => {
+    document.getElementById('calendar-loading').style.opacity = '0';
+    setTimeout(() => document.getElementById('calendar-loading').remove(), 400);
+  });
+  // Quiz handling, GSAP reveals, FAB show — todo migrado a React en src/
+</script>
+</body>
+</html>
