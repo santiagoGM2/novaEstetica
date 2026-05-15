@@ -22,6 +22,65 @@ const PRIORITIES = [
 
 const TOTAL_STEPS = 4
 
+// --------------------------------------------------------------------------
+// Webhook config — cliente envía directo al Inbound Webhook de GHL.
+//   - DEV sin VITE_GHL_WEBHOOK_URL → modo MOCK (no envía, solo console.log)
+//   - PROD sin VITE_GHL_WEBHOOK_URL → error inmediato, no se intenta nada
+// --------------------------------------------------------------------------
+const WEBHOOK_URL = import.meta.env.VITE_GHL_WEBHOOK_URL
+const WHATSAPP_LINK = import.meta.env.VITE_WHATSAPP_LINK || null
+const MOCK_WEBHOOK = import.meta.env.DEV && !WEBHOOK_URL
+
+function countDigits(s) {
+  return (String(s || '').match(/\d/g) || []).length
+}
+
+function normalizePhone(p) {
+  let s = String(p || '').replace(/[\s()-]/g, '')
+  if (!s) return ''
+  if (s.startsWith('+')) return s
+  if (s.startsWith('0')) s = s.slice(1)
+  return `+57${s}`
+}
+
+async function postWebhookWithRetry(payload, attempts = 3) {
+  // Prod sin URL configurada: no hay nada que intentar — fallar inmediato.
+  if (!MOCK_WEBHOOK && !WEBHOOK_URL) {
+    // eslint-disable-next-line no-console
+    console.error(
+      '[Quiz] VITE_GHL_WEBHOOK_URL no está configurada en producción, contactar al equipo técnico'
+    )
+    throw new Error('Webhook URL no configurada')
+  }
+
+  let delay = 1000
+  let lastErr = null
+  for (let i = 0; i < attempts; i++) {
+    try {
+      if (MOCK_WEBHOOK) {
+        // eslint-disable-next-line no-console
+        console.log('[MOCK] Webhook payload:', payload)
+        await new Promise((r) => setTimeout(r, 1000))
+        return
+      }
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (res.ok) return
+      lastErr = new Error(`HTTP ${res.status}`)
+    } catch (err) {
+      lastErr = err
+    }
+    if (i < attempts - 1) {
+      await new Promise((r) => setTimeout(r, delay))
+      delay *= 2
+    }
+  }
+  throw lastErr || new Error('Webhook failed after retries')
+}
+
 export default function Quiz() {
   const [step, setStep] = useState(1)
   const [answers, setAnswers] = useState({ zone: null, time: null, priority: null })
@@ -29,6 +88,7 @@ export default function Quiz() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState(null)
+  const [showRetryFallback, setShowRetryFallback] = useState(false)
 
   const advance = (key, value) => {
     setAnswers((a) => ({ ...a, [key]: value }))
@@ -38,39 +98,51 @@ export default function Quiz() {
   const onSubmit = async (e) => {
     e.preventDefault()
     setError(null)
+    setShowRetryFallback(false)
 
     const name = form.name.trim()
-    const phone = form.phone.trim()
-    if (!name || !phone) {
+    const rawPhone = form.phone.trim()
+
+    if (!name || !rawPhone) {
       setError('Completa tu nombre y WhatsApp para continuar.')
       return
+    }
+    if (countDigits(rawPhone) < 10) {
+      setError('El WhatsApp debe tener al menos 10 dígitos.')
+      return
+    }
+    if (!answers.zone || !answers.time || !answers.priority) {
+      setError('Algunas respuestas del diagnóstico están vacías. Volvé al paso 1 para completar.')
+      return
+    }
+
+    const payload = {
+      firstName: name,
+      phone: normalizePhone(rawPhone),
+      zone: answers.zone,
+      time: answers.time,
+      priority: answers.priority,
+      source: 'landing-quiz',
     }
 
     setSubmitting(true)
     try {
-      const res = await fetch('/api/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          phone,
-          zone: answers.zone,
-          time: answers.time,
-          priority: answers.priority,
-          source: 'landing-quiz',
-        }),
-      })
-      // Even if API fails, advance to success — backend logs will catch the lead
-      // and the user can still book via the calendar. Show a soft note on failure.
-      if (!res.ok) {
-        const detail = await res.text().catch(() => '')
-        console.warn('Lead API non-OK:', res.status, detail)
-      }
+      await postWebhookWithRetry(payload, 3)
+      setSuccess(true)
+      // Después de 1.5s — tiempo para ver el éxito — scroll suave al calendar.
+      setTimeout(() => {
+        const cal = document.getElementById('calendar')
+        if (cal) cal.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 1500)
     } catch (err) {
-      console.warn('Lead API failed:', err)
+      // eslint-disable-next-line no-console
+      console.error('[Quiz] Webhook falló tras 3 intentos:', err)
+      setError(
+        'Hubo un problema al enviar tus datos. Por favor escribinos directamente por WhatsApp para asegurar tu invitación VIP.'
+      )
+      setShowRetryFallback(true)
     } finally {
       setSubmitting(false)
-      setSuccess(true)
     }
   }
 
@@ -196,7 +268,21 @@ export default function Quiz() {
                     {submitting ? 'Enviando…' : 'Recibir mi Diagnóstico VIP'}
                     {!submitting && <ArrowIcon />}
                   </button>
-                  {error && <p className="quiz-error" role="alert">{error}</p>}
+                  {error && (
+                    <div className="quiz-error" role="alert">
+                      <p>{error}</p>
+                      {showRetryFallback && WHATSAPP_LINK && (
+                        <a
+                          href={WHATSAPP_LINK}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-outline quiz-error-cta"
+                        >
+                          Escribirnos por WhatsApp
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </form>
               </div>
             )}

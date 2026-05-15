@@ -1,216 +1,221 @@
 # WORKFLOW_SETUP.md — Configuración de GoHighLevel para Nova
 
-Guía paso a paso para que cualquier persona del equipo, **sin conocimientos técnicos**,
-deje GHL funcionando con la landing en menos de 30 minutos.
+Arquitectura **100% en GHL UI**. El frontend solo envía un POST al Inbound
+Webhook del workflow maestro; toda la lógica de tags, custom fields,
+pipeline y secuencias de WhatsApp vive en GHL.
+
+> **Cambio respecto a versiones anteriores:** antes había serverless
+> functions (`/api/lead`, `/api/setup-ghl`). Se eliminaron. El quiz manda
+> los datos directo al webhook de GHL — un solo punto de entrada, sin
+> código backend que mantener.
 
 ---
 
 ## Tabla de contenidos
 
-- [0. Resumen ejecutivo](#0-resumen-ejecutivo)
-- [1. Variables de entorno (Vercel)](#1-variables-de-entorno-vercel)
-- [2. Ejecutar el setup automático](#2-ejecutar-el-setup-automático)
-- [3. Tags (etiquetas)](#3-tags-etiquetas)
-- [4. Custom Fields](#4-custom-fields)
-- [5. Pipeline / Embudo](#5-pipeline--embudo)
-- [6. Calendario](#6-calendario)
-- [7. Workflows manuales (5 flujos)](#7-workflows-manuales-5-flujos)
+- [0. Resumen](#0-resumen)
+- [1. Variable de entorno (Vercel)](#1-variable-de-entorno-vercel)
+- [2. Setup manual one-time en GHL](#2-setup-manual-one-time-en-ghl)
+  - [2.1 Custom Fields](#21-custom-fields)
+  - [2.2 Pipeline](#22-pipeline)
+- [3. Workflow 0 — "Captación Quiz Landing"](#3-workflow-0--captación-quiz-landing-el-master)
+- [4. Workflows downstream (5)](#4-workflows-downstream-5)
   - [Workflow 1: Bienvenida Lead Landing](#workflow-1-bienvenida-lead-landing)
   - [Workflow 2: Cita Agendada Confirmación](#workflow-2-cita-agendada-confirmación)
   - [Workflow 3: Recordatorio 24h antes](#workflow-3-recordatorio-24h-antes)
   - [Workflow 4: Recordatorio 3h antes](#workflow-4-recordatorio-3h-antes)
   - [Workflow 5: Seguimiento No Agendó](#workflow-5-seguimiento-no-agendó)
-- [8. Checklist de verificación end-to-end](#8-checklist-de-verificación-end-to-end)
-- [9. Troubleshooting](#9-troubleshooting)
+- [5. Checklist E2E](#5-checklist-e2e)
+- [6. Troubleshooting](#6-troubleshooting)
 
 ---
 
-## 0. Resumen ejecutivo
+## 0. Resumen
 
-| Lo que se crea automático | Lo que se crea manual |
+| Lo que hace el frontend | Lo que hace GHL |
 | --- | --- |
-| 4 custom fields | 5 workflows de automatización |
-| Pipeline "Nova - Captación Landing" con 7 etapas | (Tags se crean solos al primer lead) |
-| Contactos + Opportunities con cada lead del quiz | |
+| `POST` a `VITE_GHL_WEBHOOK_URL` con payload del quiz | Workflow 0 lo recibe y crea/actualiza contacto |
+| Reintenta 3 veces con backoff 1s/2s/4s | Aplica custom fields + tags + mueve a pipeline |
+| Si todo falla, ofrece WhatsApp como fallback | Disparan workflows downstream (bienvenida, recordatorios) |
 
-**Workflows = solo en la UI.** El API de GHL v2 NO permite crear workflows nuevos
-programáticamente — solo listarlos, ejecutarlos y manejar versiones. Esta es una
-limitación real de GHL, no del proyecto.
-
----
-
-## 1. Variables de entorno (Vercel)
-
-En Vercel → tu proyecto → **Settings → Environment Variables**, agregar:
-
-| Variable | Valor | Dónde encontrarla |
-| --- | --- | --- |
-| `GHL_API_KEY` | Bearer token | GHL → Settings → **Private Integrations** → "Generate token". Scopes mínimos: `contacts.write`, `contacts.readonly`, `locations/customFields.write`, `opportunities.write`, `opportunities.readonly` |
-| `GHL_LOCATION_ID` | ID de la sub-cuenta | GHL → Settings → **Business Profile** → "Location ID" |
-| `VITE_WHATSAPP_LINK` | URL oficial de WhatsApp | `https://api.whatsapp.com/send/?phone=573105725730&text&type=phone_number&app_absent=0` |
-
-Aplicar las tres a **Production** y **Preview**. Después de cambiar, hacer **redeploy**
-(Vercel no las recoge en caliente).
-
----
-
-## 2. Ejecutar el setup automático
-
-Una vez configuradas las variables y desplegado el sitio:
-
-```bash
-curl -X POST https://<tu-deploy>.vercel.app/api/setup-ghl
-```
-
-(o desde Postman / Thunder Client / Bruno con un POST a esa URL).
-
-**Respuesta esperada (200):**
+**Payload exacto que envía el quiz:**
 
 ```json
 {
-  "ok": true,
-  "pipelineId": "abc123...",
-  "log": [
-    "✓ Custom field \"Zona de interés\" creado (id: ...)",
-    "✓ Custom field \"Horas recuperadas\" creado (id: ...)",
-    "✓ Custom field \"Prioridad declarada\" creado (id: ...)",
-    "✓ Custom field \"Fuente\" creado (id: ...)",
-    "✓ Pipeline \"Nova - Captación Landing\" creado (id: ...)",
-    "  7 etapas: Lead Nuevo → Diagnóstico Solicitado → ..."
-  ],
-  "errors": []
+  "firstName": "María José Pérez",
+  "phone": "+573001234567",
+  "zone": "Axilas",
+  "time": "5-8 horas",
+  "priority": "calidad",
+  "source": "landing-quiz"
 }
 ```
 
-**Si hay errores parciales** (status 207), revisar el campo `errors`. Lo más común
-es que el endpoint `POST /opportunities/pipelines` haya cambiado y haya que crear
-el pipeline a mano (instrucciones en sección 5).
+---
 
-La función es **idempotente**: podés correrla múltiples veces sin riesgo. Si algo
-ya existe, lo reporta como `skip` y no falla.
+## 1. Variable de entorno (Vercel)
+
+En Vercel → tu proyecto → **Settings → Environment Variables**:
+
+| Variable | Valor | Dónde obtenerla |
+| --- | --- | --- |
+| `VITE_GHL_WEBHOOK_URL` | URL del Inbound Webhook | GHL → Automation → Workflows → "0 - Captación Quiz Landing" → trigger Inbound Webhook → **Copy URL** (se obtiene tras crear el workflow del paso 3) |
+| `VITE_WHATSAPP_LINK` | URL oficial WhatsApp | `https://api.whatsapp.com/send/?phone=573105725730&text&type=phone_number&app_absent=0` |
+
+Aplicar a **Production** y **Preview**. Después de cambiar, hacer
+**redeploy** (Vercel no las recoge en caliente).
 
 ---
 
-## 3. Tags (etiquetas)
+## 2. Setup manual one-time en GHL
 
-**No se pre-crean.** GHL los crea solos al recibir el primer lead. Estos son los
-tags que aplicará automáticamente la serverless function `api/lead.js` cuando
-alguien complete el quiz:
+Estas dos cosas (custom fields y pipeline) se arman **una sola vez** en
+la UI de GHL antes de crear el Workflow 0. El workflow las usa para
+rellenar la información que llega del quiz.
 
-| Tag | Cuándo se aplica |
-| --- | --- |
-| `lead-landing-nova` | Siempre (todos los leads del quiz) |
-| `quiz-completado` | Siempre |
-| `interesado-axilas` / `-bikini` / `-piernas` / `-rostro` | Según paso 1 del quiz |
-| `tiempo-2-4-horas` / `-5-8-horas` / `-8-horas` | Según paso 2 |
-| `prioridad-precio` / `prioridad-calidad` | Según paso 3 |
-| `fuente-landing-quiz` | Atribución |
-| `no-agendo` | Estado inicial — se reemplaza por `cita-agendada` cuando agendan |
-| `cita-agendada` | Lo agrega Workflow #2 al disparar el calendar |
+### 2.1 Custom Fields
 
-> Después del primer lead real, anda a **Settings → Tags** y dales colores y
-> orden para que el equipo comercial los vea limpios.
+En **Settings → Custom Fields → Contact → "+ Add Field"**, crear los
+siguientes:
 
----
+| Field name | Field type | Key auto-generado |
+| --- | --- | --- |
+| Zona de interés | Single Line | `contact.zona_interes` |
+| Horas recuperadas | Single Line | `contact.horas_recuperadas` |
+| Prioridad declarada | Single Line | `contact.prioridad` |
+| Fuente | Single Line | `contact.fuente` |
 
-## 4. Custom Fields
+Después de crearlos, anotá sus IDs (botón `…` → Copy ID). Los necesitás
+en el Workflow 0.
 
-Los crea automáticamente `POST /api/setup-ghl`. Si ya existen los detecta y
-no los duplica.
+### 2.2 Pipeline
 
-| Field name | Field key | Type | Para qué |
-| --- | --- | --- | --- |
-| Zona de interés | `contact.zona_interes` | TEXT | Respuesta paso 1 del quiz |
-| Horas recuperadas | `contact.horas_recuperadas` | TEXT | Respuesta paso 2 |
-| Prioridad declarada | `contact.prioridad` | TEXT | Respuesta paso 3 |
-| Fuente | `contact.fuente` | TEXT | Atribución |
-
-Para verlos en la UI: **Settings → Custom Fields → Contact**.
-
----
-
-## 5. Pipeline / Embudo
+En **Opportunities → Pipelines → "+ New Pipeline"**:
 
 **Nombre exacto:** `Nova - Captación Landing`
 
-**Etapas (en orden):**
+**Etapas (en este orden):**
 
-1. **Lead Nuevo** — entra el contacto sin haber tocado el quiz aún.
-2. **Diagnóstico Solicitado** — completó el quiz (la API mueve aquí automático).
-3. **Cita Agendada** — disparó el calendario.
-4. **Cita Confirmada** — confirmó asistencia (manual o automatizable).
-5. **Cita Realizada** — atendida en el local.
-6. **Convertido** — compró un protocolo después de la valoración.
-7. **Perdido** — no agendó después de seguimiento, o no asistió.
+1. Lead Nuevo
+2. Diagnóstico Solicitado
+3. Cita Agendada
+4. Cita Confirmada
+5. Cita Realizada
+6. Convertido
+7. Perdido
 
-### Si el setup automático falla en este paso, créalo manual
-
-GHL → **Opportunities → Pipelines → New Pipeline**
-1. Name: `Nova - Captación Landing`
-2. Click "Add Stage" 7 veces y escribir cada nombre tal cual.
-3. Save.
+Save. Anotá el ID del pipeline (lo necesitás en el Workflow 0 también).
 
 ---
 
-## 6. Calendario
+## 3. Workflow 0 — "Captación Quiz Landing" (el master)
 
-El widget que ya está embebido en la landing es:
+Este es el único workflow disparado por el frontend. Recibe el payload,
+crea el contacto, aplica tags, rellena custom fields, crea opportunity.
+
+### Crearlo
+
+**Automation → Workflows → + New Workflow → Start from Scratch**.
+
+Nombre exacto: `0 - Captación Quiz Landing`
+
+### Trigger
+
+1. Click `+ Add New Trigger`
+2. Tipo: **Inbound Webhook**
+3. **Copiar la URL del webhook** que GHL genera y pegarla en Vercel como
+   `VITE_GHL_WEBHOOK_URL` (Settings → Environment Variables). Redeploy.
+4. **Test del webhook**: enviá un payload de prueba para que GHL "aprenda"
+   el shape. Desde Postman / curl:
+
+```bash
+curl -X POST '<URL_DEL_WEBHOOK>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "firstName": "Test Quiz",
+    "phone": "+573001234567",
+    "zone": "Axilas",
+    "time": "5-8 horas",
+    "priority": "calidad",
+    "source": "landing-quiz"
+  }'
+```
+
+GHL detecta los campos `firstName`, `phone`, `zone`, `time`, `priority`,
+`source` y los hace disponibles como variables `{{inboundWebhookRequest.firstName}}` etc.
+
+5. Save trigger.
+
+### Acción 1 — Find / Create Contact
+
+`+ Add Action → Find Contact` (preferido si ya existe el contacto por
+phone) o **Create / Update Contact**:
+
+- **First Name:** `{{inboundWebhookRequest.firstName}}`
+- **Phone:** `{{inboundWebhookRequest.phone}}` (en formato E.164 — el quiz lo envía ya normalizado)
+- **Source:** `{{inboundWebhookRequest.source}}` → `landing-quiz`
+- **Custom Fields:**
+  - Zona de interés ← `{{inboundWebhookRequest.zone}}`
+  - Horas recuperadas ← `{{inboundWebhookRequest.time}}`
+  - Prioridad declarada ← `{{inboundWebhookRequest.priority}}`
+  - Fuente ← `{{inboundWebhookRequest.source}}`
+
+### Acción 2 — Add Tags
+
+`+ Add Action → Add Tag`. Agregá estos tags todos en la misma acción
+(podés concatenarlos con coma en GHL):
+
+- `lead-landing-nova`
+- `quiz-completado`
+- `fuente-landing-quiz`
+- `no-agendo` *(estado inicial — se quita al agendar, ver Workflow 2)*
+
+### Acción 3 — Conditional tags por respuesta
+
+Acá podés ir con If/Else por cada respuesta, o usar la opción más limpia:
+**Custom Action → Add Tag** con valor dinámico construido desde la variable.
+
+Ejemplo para zona:
 
 ```
-Calendar ID:  xVUu1c8gHzw3AooU5lDC
-URL widget:   https://api.leadconnectorhq.com/widget/booking/xVUu1c8gHzw3AooU5lDC
+Add Tag: interesado-{{trigger.zone | lowercase}}
 ```
 
-En **Settings → Calendars → [tu calendar] → Edit**:
+(Si GHL no soporta filtros tipo Liquid, usá un If/Else por cada valor
+posible: 4 ramas para `zone`, 3 para `time`, 2 para `priority`.)
 
-- **Disponibilidad:** horarios reales del centro estético.
-- **Buffer:** 15 min entre citas (mínimo).
-- **Confirmación automática:** ON.
-- **Custom field obligatorio:** Nombre + Teléfono.
-- **Match by phone:** ON (para que si el lead ya existe del quiz, no se duplique).
+Tags finales que deberían quedar en el contacto:
 
-El widget genera el evento `Appointment Booked` que dispara los workflows #2, #3 y #4.
+- `interesado-axilas` / `-bikini` / `-piernas` / `-rostro`
+- `tiempo-2-4-horas` / `-5-8-horas` / `-8-horas`
+- `prioridad-precio` / `prioridad-calidad`
+
+### Acción 4 — Add to Pipeline
+
+`+ Add Action → Add to Pipeline`:
+- Pipeline: **Nova - Captación Landing**
+- Stage: **Diagnóstico Solicitado**
+
+### Publish ✅
+
+Toggle Publish (esquina superior derecha). Probá con el `curl` anterior
+y verificá en **Contacts** que aparezca el contacto con todos los tags
++ custom fields + opportunity en el stage correcto.
 
 ---
 
-## 7. Workflows manuales (5 flujos)
+## 4. Workflows downstream (5)
 
-> **Cómo crear un workflow nuevo en GHL:**
-> Sidebar izquierdo → **Automation → Workflows → + New Workflow → Start from Scratch**.
-> Después: nombre, click en el `+` para agregar trigger, click en `+` debajo del
-> trigger para agregar acciones. Activar el toggle **Publish** (esquina superior
-> derecha) cuando esté listo.
+Estos disparan **a partir** de los tags / eventos del calendario.
+No se conectan al webhook directamente.
 
 ### Workflow 1: Bienvenida Lead Landing
 
-**Objetivo:** dar bienvenida instantánea al lead que completó el quiz y empujarlo a agendar.
+**Trigger:** Contact Tag → tag added `lead-landing-nova`
 
-**Nombre:** `1 - Bienvenida Lead Landing`
+**Acción 1:** Wait `30 seconds` (race con webhook del calendar)
 
-#### Trigger
-
-1. Click `+ Add New Trigger`
-2. Workflow Trigger → **Contact Tag**
-3. **Filters:**
-   - Event: `Tag Added`
-   - Tag: seleccionar `lead-landing-nova` (después del primer lead aparece en el dropdown; si no, escribirlo a mano y crearlo)
-4. Save Trigger
-
-#### Acción 1: Wait 30 segundos
-
-(para evitar race condition con el envío de la API)
-
-1. `+ Add Action` → **Wait**
-2. Wait Type: `Time Delay`
-3. Duration: `30 Seconds`
-4. Save
-
-#### Acción 2: Send WhatsApp (mensaje de bienvenida)
-
-1. `+ Add Action` → **Send SMS** (o **WhatsApp** si tenés Conversation API activada — recomendado)
-2. From: tu número GHL conectado
-3. To: `{{contact.phone}}`
-4. **Message** (copiar tal cual, GHL reemplaza los `{{ }}`):
+**Acción 2:** Send WhatsApp / SMS
 
 ```
 Hola {{contact.first_name}}, soy Nova Aesthetic Professionals ✨
@@ -223,297 +228,103 @@ Recibimos tu diagnóstico de piel premium. En menos de 24h te contactamos person
 Cualquier duda, respondé este chat.
 ```
 
-5. Save
+**Acción 3:** Wait `24 hours`
 
-#### Acción 3: Add to Pipeline
-
-1. `+ Add Action` → **Add to Pipeline**
-2. Pipeline: `Nova - Captación Landing`
-3. Stage: `Diagnóstico Solicitado`
-4. Save
-
-#### Acción 4: Wait 24 horas
-
-1. `+ Add Action` → **Wait**
-2. Wait Type: `Time Delay`
-3. Duration: `24 Hours`
-4. Save
-
-#### Acción 5: If/Else — ¿agendó cita?
-
-1. `+ Add Action` → **If/Else Condition**
-2. Condition: `Contact Tag` → `Has Tag` → `cita-agendada`
-3. **Branch YES (sí agendó):**
-   - `+ Add Action` → **End Workflow**
-4. **Branch NO (no agendó):**
-   - `+ Add Action` → **Send WhatsApp** segundo mensaje:
-
-```
-{{contact.first_name}}, te dejé tu invitación VIP ayer y vi que aún no elegiste horario.
-
-Mañana asignamos los últimos cupos premium de la semana. Si querés asegurar el tuyo:
-👉 https://api.leadconnectorhq.com/widget/booking/xVUu1c8gHzw3AooU5lDC
-
-Si necesitás ayuda para elegir horario, respondé este mismo chat.
-```
-
-   - `+ Add Action` → **Add Tag** → `re-engage-1`
-
-#### Publish
-
-Toggle `Publish` arriba a la derecha. ✅
-
----
+**Acción 4:** If/Else → tag `cita-agendada`
+- Sí → End Workflow
+- No → Send WhatsApp segundo recordatorio + Add Tag `re-engage-1`
 
 ### Workflow 2: Cita Agendada Confirmación
 
-**Objetivo:** confirmar la cita al instante de que la persona la agenda y notificar al equipo.
+**Trigger:** Appointment → Appointment Booked, calendar `xVUu1c8gHzw3AooU5lDC`
 
-**Nombre:** `2 - Cita Agendada Confirmación`
-
-#### Trigger
-
-1. `+ Add New Trigger` → **Appointment**
-2. Event: `Appointment Booked`
-3. Filters:
-   - Calendar: seleccionar el calendario `xVUu1c8gHzw3AooU5lDC` (aparece como "Booking Calendar" o el nombre que le hayas puesto)
-4. Save
-
-#### Acción 1: Add Tag `cita-agendada`
-
-1. `+ Add Action` → **Add Tag**
-2. Tag: `cita-agendada`
-3. Save
-
-#### Acción 2: Remove Tag `no-agendo`
-
-1. `+ Add Action` → **Remove Tag**
-2. Tag: `no-agendo`
-3. Save
-
-#### Acción 3: Move Pipeline Stage
-
-1. `+ Add Action` → **Update Opportunity** (o **Move to Pipeline Stage**)
-2. Pipeline: `Nova - Captación Landing`
-3. Stage: `Cita Agendada`
-4. Save
-
-#### Acción 4: Send WhatsApp confirmación
-
-1. `+ Add Action` → **Send WhatsApp / SMS**
-2. Message:
-
-```
-Listo {{contact.first_name}} 💛
-
-Confirmamos tu valoración premium en Nova:
-📅 {{appointment.start_time}}
-📍 Ciudad Jardín, Cali
-
-Llegá 5 min antes. Te llegarán recordatorios 24h y 3h antes.
-
-Cualquier cambio, respondé este chat.
-```
-
-3. Save
-
-#### Acción 5: Internal Notification (al equipo)
-
-1. `+ Add Action` → **Send Internal Notification** (o email al equipo)
-2. To: el email del equipo comercial / dueño
-3. Subject: `Nueva cita agendada — {{contact.full_name}}`
-4. Body:
-
-```
-Cliente: {{contact.full_name}}
-Teléfono: {{contact.phone}}
-Cita: {{appointment.start_time}}
-Zona de interés: {{contact.zona_interes}}
-Prioridad: {{contact.prioridad}}
-```
-
-5. Save
-
-#### Publish ✅
-
----
+**Acciones:**
+1. Add Tag `cita-agendada`
+2. Remove Tag `no-agendo`
+3. Move Pipeline Stage → `Cita Agendada`
+4. Send WhatsApp de confirmación con fecha/hora
+5. Send Internal Notification al equipo
 
 ### Workflow 3: Recordatorio 24h antes
 
-**Nombre:** `3 - Recordatorio 24h antes`
-
-#### Trigger
-
-1. `+ Add New Trigger` → **Appointment**
-2. Event: `Appointment Status Update`
-3. Filter Status: `Confirmed`
-4. **Schedule Send:** `24 Hours Before` Appointment Start
-5. Save
-
-#### Acción 1: Send WhatsApp
-
-```
-Hola {{contact.first_name}} 💛
-
-Recordatorio: mañana a las {{appointment.start_time_short}} es tu valoración premium en Nova.
-
-📍 Ciudad Jardín, Cali — te enviamos la dirección exacta cuando confirmes
-
-¿Necesitás cambiar el horario? Respondé este chat.
-```
-
-#### Publish ✅
-
----
+**Trigger:** Appointment Status Update → Confirmed, Send `24 hours before` appointment start.
+Send WhatsApp con recordatorio.
 
 ### Workflow 4: Recordatorio 3h antes
 
-**Nombre:** `4 - Recordatorio 3h antes`
-
-#### Trigger
-
-1. `+ Add New Trigger` → **Appointment**
-2. Event: `Appointment Status Update`
-3. Filter Status: `Confirmed`
-4. **Schedule Send:** `3 Hours Before` Appointment Start
-5. Save
-
-#### Acción 1: Send WhatsApp
-
-```
-{{contact.first_name}}, tu cita en Nova es en 3 horas ✨
-
-📍 [pegar Google Maps link cuando se confirme dirección]
-🕐 {{appointment.start_time_short}}
-
-Te esperamos.
-```
-
-#### Publish ✅
-
----
+**Trigger:** Appointment Status Update → Confirmed, Send `3 hours before` appointment start.
+Send WhatsApp con recordatorio + link Google Maps.
 
 ### Workflow 5: Seguimiento No Agendó
 
-**Objetivo:** rescatar al lead que completó el quiz pero no agendó después de 3 días.
+**Trigger:** Contact Tag → tag added `lead-landing-nova`
 
-**Nombre:** `5 - Seguimiento No Agendó`
+**Acción 1:** Wait `3 days`
 
-#### Trigger
-
-1. `+ Add New Trigger` → **Contact Tag**
-2. Event: `Tag Added` → tag `lead-landing-nova`
-3. Save
-
-#### Acción 1: Wait 3 días
-
-1. `+ Add Action` → **Wait**
-2. Duration: `3 Days`
-
-#### Acción 2: If/Else — ¿agendó?
-
-- Condition: `Contact has tag cita-agendada`
-- **Branch YES:** End Workflow
-- **Branch NO:**
-  - `+ Add Action` → **Send WhatsApp**:
-
-```
-Hola {{contact.first_name}}, te escribo desde Nova ✨
-
-Vi que hace unos días pediste tu diagnóstico de piel premium pero no llegaste a agendar. ¿Hay algo en lo que pueda ayudarte?
-
-Si tenías dudas sobre el procedimiento, los precios o los horarios, respondé este chat y te las resuelvo en privado.
-
-Si preferís ver disponibilidad sin compromiso:
-👉 https://api.leadconnectorhq.com/widget/booking/xVUu1c8gHzw3AooU5lDC
-```
-
-  - `+ Add Action` → **Add Tag** → `seguimiento-72h`
-  - `+ Add Action` → **Move to Pipeline Stage** → `Perdido` (provisional, sale de aquí cuando agenden)
-
-#### Publish ✅
+**Acción 2:** If/Else → tag `cita-agendada`
+- Sí → End
+- No → Send WhatsApp de re-engagement + Add Tag `seguimiento-72h`
 
 ---
 
-## 8. Checklist de verificación end-to-end
+## 5. Checklist E2E
 
-Antes de pasar a producción, hacer este test con un teléfono de prueba:
+Antes de pasar a producción:
 
-- [ ] Variables de entorno cargadas en Vercel y redeploy hecho
-- [ ] `POST /api/setup-ghl` ejecutado y responde 200
-- [ ] Custom fields visibles en GHL → Settings → Custom Fields
-- [ ] Pipeline "Nova - Captación Landing" con 7 etapas en GHL → Pipelines
-- [ ] Workflow #1, #2, #3, #4, #5 publicados (toggle "Publish" verde)
+- [ ] Custom Fields creados en GHL → Settings → Custom Fields (4 fields)
+- [ ] Pipeline `Nova - Captación Landing` creado con 7 etapas
+- [ ] Workflow 0 publicado, webhook URL copiada
+- [ ] `VITE_GHL_WEBHOOK_URL` configurada en Vercel (Production + Preview)
+- [ ] `VITE_WHATSAPP_LINK` configurada en Vercel
+- [ ] Redeploy hecho en Vercel
+- [ ] Workflows 1-5 publicados
+- [ ] Calendar `xVUu1c8gHzw3AooU5lDC` activo en GHL → Calendars
 
-**Test del flujo completo:**
+**Test de E2E con un teléfono real:**
 
-1. Completar el quiz en la landing con un nombre + teléfono real (un celular de prueba).
-2. Verificar en GHL → Contacts:
-   - Aparece el contacto con first_name correcto.
-   - Tags aplicados: `lead-landing-nova`, `quiz-completado`, `interesado-X`, `tiempo-X`, `prioridad-X`, `fuente-landing-quiz`, `no-agendo`.
-   - Custom fields rellenados (zona_interes, horas_recuperadas, etc.) → si no aparecen, hay que actualizar `api/lead.js` para mandar los IDs de custom field específicos (ver troubleshooting).
-3. **30 segundos después** llega el WhatsApp del Workflow #1.
-4. **Agendar cita** en el calendar embebido de la landing.
-5. Verificar:
-   - Tag `cita-agendada` aplicado, `no-agendo` removido (Workflow #2).
-   - Movido a stage `Cita Agendada` en el pipeline.
-   - WhatsApp de confirmación recibido.
-   - Notificación interna recibida.
-6. **No-show simulado:** completar el quiz con OTRO teléfono y NO agendar.
-   Esperar 24h (o forzar el wait en el workflow). Verificar que se envía el segundo WhatsApp.
-7. **3 días sin agendar:** verificar que dispara Workflow #5.
+1. Completar el quiz en la landing (`/?dev=` para activar logs).
+2. Confirmar en consola del navegador: cero errores, fetch a webhook resuelve 200.
+3. Verificar en GHL → Contacts: contacto creado con todos los tags + custom fields.
+4. **30 segundos después** debería llegar WhatsApp del Workflow 1.
+5. Agendar cita en el calendar embebido.
+6. Verificar: tag `cita-agendada`, movimiento a stage `Cita Agendada`, WhatsApp confirmación.
+7. **72h sin agendar** (test alternativo con otro teléfono que no agende):
+   debería disparar Workflow 5.
 
 ---
 
-## 9. Troubleshooting
+## 6. Troubleshooting
 
-### "El custom field no se rellena, solo aparecen tags"
+### "El webhook responde 404 / 405"
+- Verificá que la URL en `VITE_GHL_WEBHOOK_URL` está completa y no
+  trunca query strings.
+- Que el Workflow 0 esté **Published** (toggle verde).
 
-`api/lead.js` aún no envía los `customFields` con sus IDs. Para activarlos:
+### "El contacto se crea pero los tags por respuesta no se aplican"
+- Si tu GHL no acepta tags dinámicos con `{{inboundWebhookRequest.zone}}`,
+  reemplazá la Acción 3 por 4 ramas If/Else (una por valor de `zone`),
+  cada una con su `Add Tag` fijo. Mismo para `time` (3 ramas) y `priority` (2).
 
-1. En GHL → Settings → Custom Fields, abrir cada uno y copiar su **ID** (botón "..." → Copy ID).
-2. Editar `api/lead.js`, descomentar la sección `customFields`, pegar los IDs:
+### "Los custom fields no se rellenan"
+- Confirmá que mapeaste los IDs correctos en la Acción 1 del Workflow 0.
+- En GHL → Settings → Custom Fields → "..." → Copy ID.
 
-```js
-customFields: [
-  { id: '<id-zona>',      value: zone },
-  { id: '<id-horas>',     value: time },
-  { id: '<id-prioridad>', value: priority },
-  { id: '<id-fuente>',    value: source },
-],
-```
+### "El frontend muestra 'Hubo un problema al enviar tus datos'"
+- Abrí DevTools → Console del browser. Buscá `[Quiz]`:
+  - `Webhook URL no está configurada` → falta la variable en Vercel.
+  - `Webhook falló tras 3 intentos` → el endpoint no responde 2xx.
+    Revisá el log del workflow en GHL → Automation → tu workflow → "Logs" tab.
 
-3. Redeploy.
+### "En desarrollo veo `[MOCK] Webhook payload:` en consola"
+- Es normal cuando `VITE_GHL_WEBHOOK_URL` no está en `.env.local`.
+- El quiz no envía nada al webhook real, pero igual te muestra el
+  success screen y scrollea al calendar — sirve para probar la UI sin
+  consumir intentos en GHL.
 
-### "El pipeline no se creó vía API (status 207 con error)"
+### "Quiero forzar el quiz a usar el webhook real en desarrollo"
+- Poné la URL real en tu `.env.local`. Reiniciá `npm run dev`.
 
-El endpoint `POST /opportunities/pipelines` ha cambiado varias veces. Si falla:
-
-1. Crear el pipeline manualmente como en la sección 5.
-2. No hace falta volver a llamar a `setup-ghl.js` — los siguientes leads simplemente no se moverán automáticamente al pipeline (los workflows lo hacen).
-
-### "El bearer token devuelve 401"
-
-- Verificar que el token sea de **Private Integrations**, no de OAuth.
-- Verificar que tenga los scopes correctos.
-- Si lo rotaste: actualizar `GHL_API_KEY` en Vercel + **redeploy**.
-
-### "Los workflows no disparan"
-
-- Verificar que estén **Published** (toggle verde arriba a la derecha).
-- En el workflow, click en `Settings` → `Re-enrollment` → permitir que se dispare múltiples veces si es necesario para testing.
-- Revisar el log del workflow: cada workflow tiene un tab "Enrollments" / "Logs" con el detalle de cada ejecución.
-
-### "Los WhatsApp salen como SMS"
-
-GHL envía WhatsApp solo si tenés la **integración de Twilio + WhatsApp Business** o **Conversation API** activadas. Sin eso, se manda como SMS (sigue funcionando, pero el costo es mayor y la entregabilidad menor en Colombia).
-
----
-
-## 10. Pendientes / mejoras futuras
-
-- [ ] Activar Custom Fields en `api/lead.js` (ver Troubleshooting #1) — los IDs hay que copiarlos manual una vez creados.
-- [ ] Implementar reintento con backoff cuando GHL responde 5xx (actualmente solo se loguea).
-- [ ] Webhook desde GHL hacia Vercel para cerrar el loop cuando un contacto agenda — útil si en el futuro queremos enviar pixels de conversión a Meta/Google.
-- [ ] Conversation AI Bot completo para el empleado digital (Workflow #5 podría ser AI en lugar de un mensaje plano).
-- [ ] Integrar notificación interna por **Slack** en lugar de email (más rápida).
+### "Vercel build falla porque no existe carpeta `api/`"
+- Cero acción. Vercel detecta serverless functions automáticamente.
+  Si no hay `api/`, simplemente no genera funciones. El build de Vite
+  sigue normal.
