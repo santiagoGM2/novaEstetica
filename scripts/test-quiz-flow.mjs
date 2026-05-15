@@ -143,13 +143,15 @@ async function testShortPhone(browser) {
 // =====================================================================
 async function testHappyPath(browser) {
   console.log('\n[TEST 3] Flujo feliz: 4 pasos + success + scroll')
-  // Pequeño delay en el stub para poder observar el estado "Enviando…"
-  const { ctx, page } = await setupPage(browser, { stubDelay: 600 })
+  // Delay en el stub: el botón "Enviando…" debe ser observable por al menos
+  // ~1s para evitar flakes cuando Playwright captura más lento que lo normal.
+  const { ctx, page } = await setupPage(browser, { stubDelay: 1200 })
 
   await scrollToQuiz(page)
   await completeSteps1to3(page, { zone: 'Bikini', time: '8+ horas', priority: 'calidad' })
 
   await page.locator('input[name="nombre"]').fill('Valentina Test')
+  await page.locator('input[name="email"]').fill('valentina@test.com')
   await page.locator('input[name="whatsapp"]').fill('3001234567')
 
   // Verificar que el botón cambia a "Enviando…" durante el submit
@@ -178,6 +180,7 @@ async function testHappyPath(browser) {
     let payload = null
     try { payload = JSON.parse(page.webhookCalls[0].body || '{}') } catch {}
     const payloadOk = payload && payload.firstName === 'Valentina Test'
+      && payload.email === 'valentina@test.com'
       && payload.phone === '+573001234567'
       && payload.zone === 'Bikini'
       && payload.time === '8+ horas'
@@ -238,6 +241,63 @@ async function testMissingAnswersSkipped() {
 }
 
 // =====================================================================
+// TEST 5: email con formato inválido bloquea el submit
+// =====================================================================
+async function testInvalidEmail(browser) {
+  console.log('\n[TEST 5] Validación: email con formato inválido')
+  const { ctx, page } = await setupPage(browser)
+  await scrollToQuiz(page)
+  await completeSteps1to3(page)
+
+  await page.locator('input[name="nombre"]').fill('Test Email')
+  await page.locator('input[name="email"]').fill('no-es-un-email')  // sin @ ni .
+  await page.locator('input[name="whatsapp"]').fill('3001234567')
+  await page.locator('button.quiz-submit').click()
+  await page.waitForTimeout(400)
+
+  const errorText = await page.locator('.quiz-error p').textContent().catch(() => '')
+  log('Error de email inválido visible',
+    /email est[ée] bien escrito/i.test(errorText) ? 'pass' : 'fail',
+    `texto: "${errorText}"`)
+  log('NO disparó POST al webhook (validación bloqueó)',
+    page.webhookCalls.length === 0 ? 'pass' : 'fail',
+    `count: ${page.webhookCalls.length}`)
+
+  await ctx.close()
+}
+
+// =====================================================================
+// TEST 6: email vacío es válido (campo opcional) + payload sin email
+// =====================================================================
+async function testEmptyEmailIsValid(browser) {
+  console.log('\n[TEST 6] Validación: email vacío es válido (campo opcional)')
+  const { ctx, page } = await setupPage(browser)
+  await scrollToQuiz(page)
+  await completeSteps1to3(page, { zone: 'Rostro', time: '2-4 horas', priority: 'precio' })
+
+  await page.locator('input[name="nombre"]').fill('Sin Email')
+  // email queda vacío deliberadamente
+  await page.locator('input[name="whatsapp"]').fill('3009876543')
+  await page.locator('button.quiz-submit').click()
+
+  await page.waitForSelector('.quiz-success', { state: 'visible', timeout: 10_000 })
+  log('Submit exitoso sin email', 'pass')
+  log('Webhook recibió 1 POST',
+    page.webhookCalls.length === 1 ? 'pass' : 'fail',
+    `count: ${page.webhookCalls.length}`)
+  if (page.webhookCalls[0]) {
+    let payload = null
+    try { payload = JSON.parse(page.webhookCalls[0].body || '{}') } catch {}
+    // Crítico: cuando no se llena email, NO debe estar en el payload.
+    log('Payload NO incluye campo email',
+      payload && !('email' in payload) ? 'pass' : 'fail',
+      JSON.stringify(payload))
+  }
+
+  await ctx.close()
+}
+
+// =====================================================================
 // Main
 // =====================================================================
 async function main() {
@@ -249,6 +309,8 @@ async function main() {
     await testShortPhone(browser)
     await testHappyPath(browser)
     await testMissingAnswersSkipped()
+    await testInvalidEmail(browser)
+    await testEmptyEmailIsValid(browser)
   } finally {
     await browser.close()
   }

@@ -31,6 +31,10 @@ const WEBHOOK_URL = import.meta.env.VITE_GHL_WEBHOOK_URL
 const WHATSAPP_LINK = import.meta.env.VITE_WHATSAPP_LINK || null
 const MOCK_WEBHOOK = import.meta.env.DEV && !WEBHOOK_URL
 
+// Simple email validation — rechaza espacios, exige @ y al menos un .
+// No es bulletproof (acepta "a@b.c") pero cubre el 99% de typos comunes.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 function countDigits(s) {
   return (String(s || '').match(/\d/g) || []).length
 }
@@ -84,7 +88,7 @@ async function postWebhookWithRetry(payload, attempts = 3) {
 export default function Quiz() {
   const [step, setStep] = useState(1)
   const [answers, setAnswers] = useState({ zone: null, time: null, priority: null })
-  const [form, setForm] = useState({ name: '', phone: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '' })
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState(null)
@@ -101,6 +105,7 @@ export default function Quiz() {
     setShowRetryFallback(false)
 
     const name = form.name.trim()
+    const email = form.email.trim()
     const rawPhone = form.phone.trim()
 
     if (!name || !rawPhone) {
@@ -109,6 +114,10 @@ export default function Quiz() {
     }
     if (countDigits(rawPhone) < 10) {
       setError('El WhatsApp debe tener al menos 10 dígitos.')
+      return
+    }
+    if (email && !EMAIL_REGEX.test(email)) {
+      setError('Revisá que el email esté bien escrito.')
       return
     }
     if (!answers.zone || !answers.time || !answers.priority) {
@@ -123,6 +132,7 @@ export default function Quiz() {
       time: answers.time,
       priority: answers.priority,
       source: 'landing-quiz',
+      ...(email && { email }),
     }
 
     setSubmitting(true)
@@ -253,6 +263,15 @@ export default function Quiz() {
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     required
+                  />
+                  <input
+                    className="quiz-input"
+                    type="email"
+                    name="email"
+                    placeholder="Tu email (opcional)"
+                    autoComplete="email"
+                    value={form.email}
+                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   />
                   <input
                     className="quiz-input"
