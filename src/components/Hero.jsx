@@ -2,15 +2,13 @@ import { useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { scrollToId } from '../lib/scrollTo'
 import { ArrowIcon } from '../lib/icons'
-import Hero3DScene from './Hero3DScene'
 import { gsap, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
 
 export default function Hero() {
   const sectionRef = useRef(null)
   const prefersReduced = useReducedMotion()
 
-  // Variant factory — delays comprimidos para que el CTA aparezca a ~0.95s
-  // (Ajuste B: total visible < 1.5s).
+  // Variant factory — delays comprimidos para que el CTA aparezca a ~0.95s.
   // Si el usuario prefiere reduced motion, todo aparece sin movimiento.
   const v = (delay) =>
     prefersReduced
@@ -23,6 +21,18 @@ export default function Hero() {
             transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1], delay },
           },
         }
+
+  // Image entrance: fade + scale-in lento que se acopla al Ken-Burns CSS
+  const imageVariants = prefersReduced
+    ? { hidden: { opacity: 1, scale: 1 }, show: { opacity: 1, scale: 1 } }
+    : {
+        hidden: { opacity: 0, scale: 1.06 },
+        show: {
+          opacity: 1,
+          scale: 1,
+          transition: { duration: 1.4, ease: [0.23, 1, 0.32, 1] },
+        },
+      }
 
   // Parallax on scroll (sin animación de entrada — esa la hace motion)
   useGSAPScrollTrigger(sectionRef, () => {
@@ -37,8 +47,8 @@ export default function Hero() {
         scrub: true,
       },
     })
-    gsap.to('.hero-3d', {
-      yPercent: -10,
+    gsap.to('.hero-image', {
+      yPercent: -6,
       ease: 'none',
       scrollTrigger: {
         trigger: sectionRef.current,
@@ -52,7 +62,27 @@ export default function Hero() {
   return (
     <section ref={sectionRef} className="hero" aria-labelledby="hero-heading">
       <div className="hero-bg" aria-hidden="true" />
-      <Hero3DScene />
+
+      <motion.picture
+        className="hero-image"
+        aria-hidden="true"
+        variants={imageVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <source srcSet="/assets/imagenhero/hero-nova.webp" type="image/webp" />
+        <img
+          src="/assets/imagenhero/hero-nova.webp"
+          alt=""
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </motion.picture>
+
+      <div className="hero-overlay" aria-hidden="true" />
+      <div className="hero-accent-line" aria-hidden="true" />
+
       <span className="hero-location" aria-hidden="true">Cali</span>
 
       <div className="hero-scroll" aria-hidden="true">
