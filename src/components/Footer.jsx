@@ -21,7 +21,7 @@ export default function Footer() {
         <h2 className="footer-headline">
           Solo <span className="spots">5 valoraciones premium</span> disponibles esta semana.
         </h2>
-        <a href="#calendar" className="btn-primary footer-cta" onClick={(e) => scrollToId('calendar', e)}>
+        <a href="#quiz" className="btn-primary footer-cta" onClick={(e) => scrollToId('quiz', e)}>
           Reclamar mi Valoración Gratuita y asegurar mi cupo
           <ArrowIcon />
         </a>
@@ -39,7 +39,7 @@ export default function Footer() {
               decoding="async"
             />
           </picture>
-          <p className="footer-tagline">Nova Aesthetic Professionals · Ciudad Jardín, Cali</p>
+          <p className="footer-tagline">Nova Aesthetic Professionals · Cali</p>
         </div>
 
         <div className="footer-links">

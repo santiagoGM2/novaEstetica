@@ -73,7 +73,7 @@ export default function EspacioSection() {
             Un espacio diseñado para tu evolución.
           </h2>
           <p className="espacio-sub">
-            Tecnología <strong>Fenix 4</strong> y estándar sanitario premium en el corazón de Ciudad Jardín, Cali. Un protocolo donde cada detalle del entorno comunica el nivel del resultado.
+            Tecnología <strong>Fenix 4</strong> y estándar sanitario premium en el corazón de Cali. Un protocolo donde cada detalle del entorno comunica el nivel del resultado.
           </p>
         </div>
       </div>

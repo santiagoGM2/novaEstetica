@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { scrollToId } from '../lib/scrollTo'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowIcon, CheckIcon } from '../lib/icons'
 
 const ZONES = [
@@ -39,12 +38,11 @@ function countDigits(s) {
   return (String(s || '').match(/\d/g) || []).length
 }
 
+// El input solo recibe los 10 dígitos colombianos. El prefijo +57 vive en la UI.
 function normalizePhone(p) {
-  let s = String(p || '').replace(/[\s()-]/g, '')
-  if (!s) return ''
-  if (s.startsWith('+')) return s
-  if (s.startsWith('0')) s = s.slice(1)
-  return `+57${s}`
+  const digits = String(p || '').replace(/\D/g, '')
+  if (!digits) return ''
+  return `+57${digits}`
 }
 
 async function postWebhookWithRetry(payload, attempts = 3) {
@@ -85,7 +83,7 @@ async function postWebhookWithRetry(payload, attempts = 3) {
   throw lastErr || new Error('Webhook failed after retries')
 }
 
-export default function Quiz() {
+export default function Quiz({ seed }) {
   const [step, setStep] = useState(1)
   const [answers, setAnswers] = useState({ zone: null, time: null, priority: null })
   const [form, setForm] = useState({ name: '', email: '', phone: '' })
@@ -93,10 +91,32 @@ export default function Quiz() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState(null)
   const [showRetryFallback, setShowRetryFallback] = useState(false)
+  // Track de pre-selección de la zona desde las tarjetas de servicio,
+  // para mostrar el hint "Seleccionaste: X · cambiar" en el paso 2.
+  const [preselectedZone, setPreselectedZone] = useState(null)
+  const lastSeedKey = useRef(null)
+
+  // Aplica el seed cuando cambia (cambio de tarjeta → nuevo timestamp)
+  useEffect(() => {
+    if (seed?.key && seed.key !== lastSeedKey.current && seed.preselectZone) {
+      lastSeedKey.current = seed.key
+      setAnswers((a) => ({ ...a, zone: seed.preselectZone }))
+      setStep(2)
+      setPreselectedZone(seed.preselectZone)
+    }
+  }, [seed])
 
   const advance = (key, value) => {
     setAnswers((a) => ({ ...a, [key]: value }))
+    // Si el usuario eligió manualmente la zona, ya no es "preselect"
+    if (key === 'zone') setPreselectedZone(null)
     setTimeout(() => setStep((s) => Math.min(s + 1, TOTAL_STEPS)), 320)
+  }
+
+  const clearPreselect = () => {
+    setStep(1)
+    setAnswers((a) => ({ ...a, zone: null }))
+    setPreselectedZone(null)
   }
 
   const onSubmit = async (e) => {
@@ -113,7 +133,7 @@ export default function Quiz() {
       return
     }
     if (countDigits(rawPhone) < 10) {
-      setError('El WhatsApp debe tener al menos 10 dígitos.')
+      setError('Ingresá los 10 dígitos de tu celular.')
       return
     }
     if (email && !EMAIL_REGEX.test(email)) {
@@ -139,11 +159,6 @@ export default function Quiz() {
     try {
       await postWebhookWithRetry(payload, 3)
       setSuccess(true)
-      // Después de 1.5s — tiempo para ver el éxito — scroll suave al calendar.
-      setTimeout(() => {
-        const cal = document.getElementById('calendar')
-        if (cal) cal.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 1500)
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('[Quiz] Webhook falló tras 3 intentos:', err)
@@ -211,6 +226,14 @@ export default function Quiz() {
 
             {step === 2 && (
               <div className="quiz-step active">
+                {preselectedZone && (
+                  <div className="quiz-preselect-hint" role="status" aria-live="polite">
+                    <span>Seleccionaste: <strong>{preselectedZone}</strong></span>
+                    <button type="button" className="quiz-preselect-change" onClick={clearPreselect}>
+                      cambiar
+                    </button>
+                  </div>
+                )}
                 <p className="quiz-question">¿Cuántas horas al mes recuperas si dejas de depender de la cuchilla?</p>
                 <div className="time-grid">
                   {TIMES.map((t) => (
@@ -273,16 +296,25 @@ export default function Quiz() {
                     value={form.email}
                     onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   />
-                  <input
-                    className="quiz-input"
-                    type="tel"
-                    name="whatsapp"
-                    placeholder="+57 300 000 0000"
-                    autoComplete="tel"
-                    value={form.phone}
-                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                    required
-                  />
+                  <div className="quiz-phone-group">
+                    <span className="quiz-phone-prefix" aria-hidden="true">+57</span>
+                    <input
+                      className="quiz-input quiz-phone-input"
+                      type="tel"
+                      name="whatsapp"
+                      placeholder="300 000 0000"
+                      autoComplete="tel-national"
+                      inputMode="numeric"
+                      aria-label="Número de WhatsApp en Colombia, 10 dígitos"
+                      value={form.phone}
+                      onChange={(e) => {
+                        // Solo dígitos y espacios, cap a 14 chars (10 dígitos + espacios)
+                        const v = e.target.value.replace(/[^\d\s]/g, '').slice(0, 14)
+                        setForm((f) => ({ ...f, phone: v }))
+                      }}
+                      required
+                    />
+                  </div>
                   <button type="submit" className="btn-primary quiz-submit" disabled={submitting}>
                     {submitting ? 'Enviando…' : 'Recibir mi Diagnóstico VIP'}
                     {!submitting && <ArrowIcon />}
@@ -315,12 +347,19 @@ export default function Quiz() {
             </div>
             <p className="quiz-success-title">Diagnóstico registrado.</p>
             <p className="quiz-success-text">
-              Recibirás tu invitación VIP por WhatsApp. Ahora elige tu horario.
+              Recibirás tu invitación VIP por WhatsApp en los próximos minutos.
             </p>
-            <a href="#calendar" className="btn-primary" onClick={(e) => scrollToId('calendar', e)}>
-              Asegurar mi Invitación VIP
-              <ArrowIcon />
-            </a>
+            {WHATSAPP_LINK && (
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+              >
+                Escribirnos por WhatsApp
+                <ArrowIcon />
+              </a>
+            )}
           </div>
         )}
       </div>

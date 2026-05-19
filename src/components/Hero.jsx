@@ -1,55 +1,30 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
 import { scrollToId } from '../lib/scrollTo'
 import { ArrowIcon } from '../lib/icons'
 import Hero3DScene from './Hero3DScene'
 import { gsap, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
 
-const HEADLINE = '¿Por qué una mujer con tu nivel de éxito sigue negociando su agenda con una cuchilla cada mañana?'
-
-function splitWords(text) {
-  // Word-level split is more legible than letter-by-letter for this length.
-  return text.split(/(\s+)/).map((chunk, i) => {
-    if (/^\s+$/.test(chunk)) return <span key={`s-${i}`}>{chunk}</span>
-    return (
-      <span key={`w-${i}`} className="hero-word">
-        <span className="hero-word-inner">{chunk}</span>
-      </span>
-    )
-  })
-}
-
 export default function Hero() {
   const sectionRef = useRef(null)
+  const prefersReduced = useReducedMotion()
 
-  // Initial reveal animation
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: 'cubic-bezier(0.23, 1, 0.32, 1)' } })
-
-      // Note: .hero-3d is intentionally NOT animated here. Animating its opacity
-      // through gsap.context() interacts badly with React 18 strict mode in dev
-      // (double-mount + revert can leave it stuck at opacity:0). The canvas
-      // appears as soon as the lazy chunk mounts.
-      tl.from('.hero-pre', { opacity: 0, y: 18, duration: 0.7, delay: 0.15 })
-        .from(
-          '.hero-word-inner',
-          {
-            opacity: 0,
-            yPercent: 110,
-            filter: 'blur(8px)',
-            duration: 0.9,
-            stagger: { each: 0.04, from: 'start' },
+  // Variant factory — delays comprimidos para que el CTA aparezca a ~0.95s
+  // (Ajuste B: total visible < 1.5s).
+  // Si el usuario prefiere reduced motion, todo aparece sin movimiento.
+  const v = (delay) =>
+    prefersReduced
+      ? { hidden: { opacity: 1, y: 0 }, show: { opacity: 1, y: 0 } }
+      : {
+          hidden: { opacity: 0, y: 24 },
+          show: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1], delay },
           },
-          '-=0.35'
-        )
-        .from('.hero-sub', { opacity: 0, y: 24, duration: 0.8 }, '-=0.5')
-        .from('.hero-cta', { opacity: 0, y: 18, duration: 0.7 }, '-=0.5')
-    }, sectionRef)
-    return () => ctx.revert()
-  }, [])
+        }
 
-  // Parallax on scroll (cheap — gsap.quickSetter style would be ideal but
-  // ScrollTrigger handles it efficiently enough for a single hero).
+  // Parallax on scroll (sin animación de entrada — esa la hace motion)
   useGSAPScrollTrigger(sectionRef, () => {
     gsap.to('.hero-content', {
       yPercent: -8,
@@ -62,7 +37,6 @@ export default function Hero() {
         scrub: true,
       },
     })
-    // Only do parallax on the 3D layer (no opacity changes — keep it visible)
     gsap.to('.hero-3d', {
       yPercent: -10,
       ease: 'none',
@@ -78,11 +52,8 @@ export default function Hero() {
   return (
     <section ref={sectionRef} className="hero" aria-labelledby="hero-heading">
       <div className="hero-bg" aria-hidden="true" />
-
-      {/* 3D scene replaces the old SVG arc rings */}
       <Hero3DScene />
-
-      <span className="hero-location" aria-hidden="true">Ciudad Jardín, Cali</span>
+      <span className="hero-location" aria-hidden="true">Cali</span>
 
       <div className="hero-scroll" aria-hidden="true">
         <div className="hero-scroll-line" />
@@ -90,26 +61,68 @@ export default function Hero() {
       </div>
 
       <div className="hero-content">
-        <span className="hero-pre">Protocolo Evolución Láser · Nova Aesthetic Professionals</span>
+        <motion.span
+          className="hero-pre"
+          variants={v(0)}
+          initial="hidden"
+          animate="show"
+        >
+          Protocolo Evolución Láser · Nova Aesthetic Professionals
+        </motion.span>
 
         <h1 className="hero-title" id="hero-heading">
-          {splitWords(HEADLINE)}
+          <motion.span
+            className="hero-title-line"
+            variants={v(0.1)}
+            initial="hidden"
+            animate="show"
+          >
+            ¿Por qué seguís perdiendo tiempo
+          </motion.span>
+          <motion.span
+            className="hero-title-line"
+            variants={v(0.4)}
+            initial="hidden"
+            animate="show"
+          >
+            con una <em className="hero-title-accent">cuchilla</em> cada mañana?
+          </motion.span>
         </h1>
 
-        <p className="hero-sub">
-          No es falta de tiempo; es que estás usando un método del siglo pasado para una piel que merece el estándar del futuro. Tu piel no necesita más cuidados, necesita una <strong>Evolución de Identidad</strong>.
-        </p>
+        <motion.p
+          className="hero-sub"
+          variants={v(0.7)}
+          initial="hidden"
+          animate="show"
+        >
+          No es falta de tiempo. Tu piel merece el estándar del futuro: una <strong>Evolución de Identidad</strong>.
+        </motion.p>
 
-        <a href="#quiz" className="btn-primary hero-cta" onClick={(e) => scrollToId('quiz', e)}>
+        <motion.a
+          href="#quiz"
+          className="btn-primary hero-cta"
+          onClick={(e) => scrollToId('quiz', e)}
+          variants={v(0.95)}
+          initial="hidden"
+          animate="show"
+          whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+          transition={prefersReduced ? undefined : { type: 'spring', stiffness: 320, damping: 22 }}
+        >
           Iniciar mi Diagnóstico de Piel Premium
           <ArrowIcon />
-        </a>
+        </motion.a>
 
-        <ul className="hero-trust" aria-label="Garantías iniciales">
+        <motion.ul
+          className="hero-trust"
+          variants={v(1.15)}
+          initial="hidden"
+          animate="show"
+          aria-label="Garantías iniciales"
+        >
           <li><span className="hero-trust-dot" aria-hidden="true" />Sin compromiso</li>
           <li><span className="hero-trust-dot" aria-hidden="true" />60 segundos</li>
           <li><span className="hero-trust-dot" aria-hidden="true" />100% privado</li>
-        </ul>
+        </motion.ul>
       </div>
     </section>
   )

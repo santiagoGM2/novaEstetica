@@ -128,7 +128,7 @@ async function testShortPhone(browser) {
 
   const errorText = await page.locator('.quiz-error p').textContent().catch(() => '')
   log('Error de teléfono corto visible',
-    /10 d[íi]gitos/.test(errorText) ? 'pass' : 'fail',
+    /10 d[íi]gitos.*celular/i.test(errorText) ? 'pass' : 'fail',
     `texto: "${errorText}"`)
   // Crítico: la validación debe bloquear el POST.
   log('NO disparó POST al webhook (validación bloqueó)',
@@ -139,10 +139,10 @@ async function testShortPhone(browser) {
 }
 
 // =====================================================================
-// TEST 3: flujo feliz completo
+// TEST 3: flujo feliz completo (sin scroll a calendar — eliminado)
 // =====================================================================
 async function testHappyPath(browser) {
-  console.log('\n[TEST 3] Flujo feliz: 4 pasos + success + scroll')
+  console.log('\n[TEST 3] Flujo feliz: 4 pasos + success')
   // Delay en el stub: el botón "Enviando…" debe ser observable por al menos
   // ~1s para evitar flakes cuando Playwright captura más lento que lo normal.
   const { ctx, page } = await setupPage(browser, { stubDelay: 1200 })
@@ -189,29 +189,10 @@ async function testHappyPath(browser) {
     log('Payload del webhook correcto', payloadOk ? 'pass' : 'fail', JSON.stringify(payload))
   }
 
-  // Verificar scroll automático al calendar. El timer del componente
-  // dispara a 1.5s, pero Lenis hace smooth scroll que toma tiempo
-  // adicional. Polleamos hasta convergencia o timeout (3.5s total).
-  const scrollY_before = await page.evaluate(() => window.scrollY)
-  const calendarOffset = await page.evaluate(() => {
-    const c = document.getElementById('calendar')
-    if (!c) return null
-    return c.getBoundingClientRect().top + window.scrollY
-  })
-
-  let scrollY_after = scrollY_before
-  let reachedCalendar = false
-  const deadline = Date.now() + 3500
-  while (Date.now() < deadline) {
-    await page.waitForTimeout(150)
-    scrollY_after = await page.evaluate(() => window.scrollY)
-    if (calendarOffset !== null && Math.abs(scrollY_after - calendarOffset) < 200) {
-      reachedCalendar = true
-      break
-    }
-  }
-  log('Scroll automático al calendar (post-éxito)', reachedCalendar ? 'pass' : 'fail',
-    `scrollY before: ${scrollY_before}, after: ${scrollY_after}, calendar offset: ${calendarOffset}`)
+  // Verificar que el success state muestra el CTA de WhatsApp
+  // (reemplaza al antiguo CTA hacia el calendar, ya eliminado).
+  const waCtaVisible = await page.locator('.quiz-success a[href*="wa.me"], .quiz-success a[href*="whatsapp.com"]').isVisible().catch(() => false)
+  log('Success state muestra CTA hacia WhatsApp', waCtaVisible ? 'pass' : 'fail')
 
   await ctx.close()
 }
@@ -298,6 +279,38 @@ async function testEmptyEmailIsValid(browser) {
 }
 
 // =====================================================================
+// TEST 7: pre-selección de zona "Rostro" desde tarjeta Faciales
+// =====================================================================
+// Click en la card Faciales → CTA → debe scrollear al quiz y dejar
+// al usuario en el paso 2 con un hint "Seleccionaste: Rostro · cambiar".
+async function testServicePreselectFaciales(browser) {
+  console.log('\n[TEST 7] Pre-selección zona desde tarjeta Faciales')
+  const { ctx, page } = await setupPage(browser)
+
+  // Click en la CTA "Iniciar mi Diagnóstico Facial" dentro de la primera card
+  const facialesCta = page.locator('.service-card:has-text("Faciales") .service-card-cta')
+  await facialesCta.scrollIntoViewIfNeeded()
+  await facialesCta.click()
+  await page.waitForTimeout(900)
+
+  // Esperar a que el paso 2 esté visible (la pregunta de horas)
+  const onStep2 = await page
+    .locator('.quiz-step.active:has-text("¿Cuántas horas")')
+    .isVisible()
+    .catch(() => false)
+  log('Quiz avanzó automáticamente al paso 2 tras seleccionar Faciales',
+    onStep2 ? 'pass' : 'fail')
+
+  // El hint "Seleccionaste: Rostro" debe ser visible
+  const hintText = await page.locator('.quiz-preselect-hint').textContent().catch(() => '')
+  log('Hint de pre-selección muestra "Rostro"',
+    /Seleccionaste/i.test(hintText) && /Rostro/i.test(hintText) ? 'pass' : 'fail',
+    `texto: "${hintText.replace(/\s+/g, ' ').trim()}"`)
+
+  await ctx.close()
+}
+
+// =====================================================================
 // Main
 // =====================================================================
 async function main() {
@@ -311,6 +324,7 @@ async function main() {
     await testMissingAnswersSkipped()
     await testInvalidEmail(browser)
     await testEmptyEmailIsValid(browser)
+    await testServicePreselectFaciales(browser)
   } finally {
     await browser.close()
   }

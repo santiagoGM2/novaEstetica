@@ -617,42 +617,7 @@ body { font-family: var(--ff-sans); }
   letter-spacing: 0.01em;
 }
 
-/* ============================================================
-   CALENDAR polish — wrapper border + scroll-margin for fixed header.
-   GHL widget needs ~920px to show calendar + time picker + form
-   without scrollbars. Mobile gets 780px.
-   ============================================================ */
-.calendar-section {
-  scroll-margin-top: 96px;
-}
-.calendar-wrap {
-  border: 1px solid var(--border-medium);
-  background: var(--bg-elevated);
-  box-shadow:
-    0 0 0 1px rgba(201, 161, 100, 0.10),
-    0 24px 80px rgba(0, 0, 0, 0.55);
-  overflow: visible;       /* override: don't clip the iframe if it grows */
-  max-height: none;
-}
-.calendar-iframe-wrap { overflow: visible; max-height: none; }
-.calendar-wrap iframe {
-  height: 920px;           /* override: enough room for calendar + form */
-  min-height: 920px;
-  max-height: none;
-  border: none;
-  display: block;
-  width: 100%;
-}
-.calendar-section .section-title {
-  font-family: var(--ff-display);
-}
-
-@media (max-width: 960px) {
-  .calendar-wrap iframe {
-    height: 780px;
-    min-height: 780px;
-  }
-}
+/* Calendar polish removed — section eliminated. Quiz is single CTA target. */
 
 /* ============================================================
    FOOTER v2 — logo + links + copyright

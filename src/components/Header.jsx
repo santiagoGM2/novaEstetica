@@ -32,7 +32,7 @@ export default function Header() {
         >
           <InstagramIcon />
         </a>
-        <a href="#calendar" className="btn-nav" onClick={(e) => scrollToId('calendar', e)}>
+        <a href="#quiz" className="btn-nav" onClick={(e) => scrollToId('quiz', e)}>
           Ver Disponibilidad VIP
         </a>
       </div>

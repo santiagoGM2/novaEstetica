@@ -5,7 +5,7 @@ import { ArrowIcon } from '../lib/icons'
 /**
  * Thin sticky bar above the header. Appears after the user scrolls past the
  * first viewport (so it doesn't fight with the hero), and offers an
- * always-present scarcity reminder + one-click path to the calendar.
+ * always-present scarcity reminder + one-click path to the quiz.
  */
 export default function UrgencyBar() {
   const [visible, setVisible] = useState(false)
@@ -25,9 +25,9 @@ export default function UrgencyBar() {
           <strong>5 cupos premium</strong> esta semana · Sin compromiso
         </span>
         <a
-          href="#calendar"
+          href="#quiz"
           className="urgency-bar-cta"
-          onClick={(e) => scrollToId('calendar', e)}
+          onClick={(e) => scrollToId('quiz', e)}
         >
           Reservar
           <ArrowIcon />

@@ -4,7 +4,7 @@ import { gsap, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
 
 const testimonials = [
   {
-    quote: 'Por fin encontré un lugar en Ciudad Jardín que entiende mi ritmo de vida.',
+    quote: 'Por fin encontré un lugar en Cali que entiende mi ritmo de vida.',
     avatar: 'V',
     name: 'Valentina M.',
     role: 'Gerente Comercial · Cali',
@@ -13,7 +13,7 @@ const testimonials = [
     quote: 'Estar siempre lista para el gimnasio, para una reunión, para cualquier cosa. Eso no tiene precio.',
     avatar: 'C',
     name: 'Carolina R.',
-    role: 'Empresaria · Ciudad Jardín',
+    role: 'Empresaria · Cali',
   },
 ]
 
@@ -189,7 +189,7 @@ export default function SocialProof() {
         </div>
         <div className="proof-stat" role="listitem">
           <span className="proof-stat-num">+200</span>
-          <span className="proof-stat-label">mujeres premium<br />atendidas en Ciudad Jardín</span>
+          <span className="proof-stat-label">mujeres premium<br />atendidas en Cali</span>
         </div>
         <div className="proof-stat" role="listitem">
           <span className="proof-stat-num">4.9 / 5</span>

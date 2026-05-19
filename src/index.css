@@ -972,105 +972,7 @@ input, textarea {
 }
 .trust-badge-text { font-size: 0.78rem; color: var(--text-2); line-height: 1.4; max-width: 16ch; }
 
-/* ============================================================
-   CALENDAR
-   ============================================================ */
-.calendar-section {
-  padding: 112px 48px 140px;
-  text-align: center;
-  position: relative;
-  background: var(--bg-warm);
-}
-.calendar-section::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 1px;
-  height: 80px;
-  background: linear-gradient(to bottom, transparent, var(--gold-dim));
-}
-.calendar-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 60%, oklch(66% 0.10 14 / 0.03) 0%, transparent 60%);
-  pointer-events: none;
-}
-.calendar-section .section-title {
-  margin: 0 auto 64px;
-  max-width: 44ch;
-}
-
-.calendar-wrap {
-  max-width: 940px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-  background: var(--bg-elevated);
-  border: 0.75px solid var(--border);
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow:
-    0 0 0 0.75px oklch(76% 0.118 82 / 0.08),
-    0 24px 80px oklch(0% 0 0 / 0.4);
-}
-
-.calendar-loading {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-elevated);
-  gap: 20px;
-  padding: 60px 40px;
-  pointer-events: none;
-  transition: opacity 0.4s;
-}
-.calendar-loading.hidden { opacity: 0; pointer-events: none; }
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 1.5px solid var(--border);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.calendar-loading-text {
-  font-family: var(--ff-serif);
-  font-size: 1.1rem;
-  font-weight: 400;
-  color: var(--text-2);
-}
-.calendar-loading-sub {
-  font-size: 0.8rem;
-  color: var(--text-3);
-  max-width: 36ch;
-  text-align: center;
-  line-height: 1.65;
-}
-.calendar-loading-sub a {
-  color: var(--gold-dim);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.calendar-iframe-wrap {
-  display: block;
-  position: relative;
-}
-
-.calendar-wrap iframe {
-  display: block;
-  width: 100%;
-  height: 720px;
-  border: none;
-}
+/* Calendar section removed — Quiz is now the single conversion entry. */
 
 /* ============================================================
    FOOTER
@@ -1269,9 +1171,7 @@ input, textarea {
   .testimonial { padding: 44px 36px; }
   .trust-badges { gap: 28px; }
 
-  .calendar-section { padding: 80px 28px 96px; }
-  .calendar-section::before { display: none; }
-  .calendar-wrap iframe { min-height: 600px; }
+  /* calendar responsive rules removed with the component */
 
   .footer { padding: 72px 28px 52px; }
   .footer-bottom { gap: 20px; }

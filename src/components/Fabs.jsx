@@ -30,12 +30,12 @@ export default function Fabs() {
         <span className="fab-icon"><WhatsAppIcon /></span>
       </a>
       <a
-        href="#calendar"
+        href="#quiz"
         className={`fab fab-cta${visible ? ' visible' : ''}`}
-        onClick={(e) => scrollToId('calendar', e)}
-        aria-label="Asegurar mi Invitación VIP"
+        onClick={(e) => scrollToId('quiz', e)}
+        aria-label="Iniciar mi Diagnóstico"
       >
-        <span className="fab-label">Asegurar mi Invitación VIP</span>
+        <span className="fab-label">Iniciar mi Diagnóstico</span>
         <span className="fab-icon"><CalendarIcon /></span>
       </a>
     </div>
