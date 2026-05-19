@@ -70,6 +70,13 @@ export default function Hero() {
         initial="hidden"
         animate="show"
       >
+        {/* Mobile: imagen vertical optimizada para portrait */}
+        <source
+          media="(max-width: 768px)"
+          srcSet="/assets/imagenhero/heronovamovil.webp"
+          type="image/webp"
+        />
+        {/* Desktop/tablet: imagen horizontal con composición lateral */}
         <source srcSet="/assets/imagenhero/hero-nova.webp" type="image/webp" />
         <img
           src="/assets/imagenhero/hero-nova.webp"

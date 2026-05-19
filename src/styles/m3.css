@@ -308,7 +308,7 @@
   z-index: 3;
 }
 
-/* ----- Mobile (≤960px): imagen full bleed, overlay top→bottom ----- */
+/* ----- Tablet (≤960px, >768px): imagen horizontal, ajuste de center ----- */
 @media (max-width: 960px) {
   .hero-image img {
     object-position: 70% center;
@@ -331,6 +331,61 @@
     padding-top: clamp(108px, 14vh, 144px);
     padding-bottom: clamp(72px, 9vh, 112px);
     padding-right: clamp(20px, 4vw, 48px);
+  }
+}
+
+/* ----- Mobile (≤768px): imagen vertical dedicada, overlay refinado ----- */
+@media (max-width: 768px) {
+  .hero-image img {
+    /* La imagen mobile ya es portrait con la mujer centrada — center
+       horizontal y un poco arriba del centro vertical para priorizar
+       cara + torso sobre las piernas */
+    object-position: center 38%;
+  }
+  .hero-overlay {
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(10, 7, 7, 0.88) 0%,
+        rgba(10, 7, 7, 0.60) 22%,
+        rgba(10, 7, 7, 0.18) 42%,
+        rgba(10, 7, 7, 0.55) 70%,
+        rgba(10, 7, 7, 0.95) 100%
+      ),
+      /* Viñeta lateral suave para reforzar contraste de los bordes */
+      radial-gradient(
+        ellipse 130% 100% at 50% 50%,
+        transparent 30%,
+        rgba(10, 7, 7, 0.35) 100%
+      );
+  }
+  /* Ken-Burns más suave en mobile (menos pan, mismo zoom) */
+  .hero-image img {
+    animation-name: hero-ken-burns-mobile;
+    animation-duration: 26s;
+  }
+}
+
+@keyframes hero-ken-burns-mobile {
+  0%   { transform: scale(1)    translate3d(0, 0, 0); }
+  100% { transform: scale(1.04) translate3d(0, -1%, 0); }
+}
+
+/* ----- Mobile chico (≤480px): texto más pegado al top sobre zona oscura ----- */
+@media (max-width: 480px) {
+  .hero-image img {
+    object-position: center 42%;
+  }
+  .hero-overlay {
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(10, 7, 7, 0.92) 0%,
+        rgba(10, 7, 7, 0.68) 18%,
+        rgba(10, 7, 7, 0.25) 40%,
+        rgba(10, 7, 7, 0.60) 68%,
+        rgba(10, 7, 7, 0.96) 100%
+      );
   }
 }
 
