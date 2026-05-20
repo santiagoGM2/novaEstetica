@@ -55,7 +55,10 @@ export default function Conciencia() {
       }
     )
 
-    // Each pain-point: cinematic entrance — rotateY 3D + clipPath wipe + marker pop
+    // Each pain-point: cinematic entrance — rotateY 3D + clipPath wipe + marker pop.
+    // En mobile (≤768px) simplificamos a opacity + scale para evitar que estados
+    // intermedios del scrub produzcan "fantasmas" visuales superpuestos.
+    const isMobile = window.matchMedia('(max-width: 768px)').matches
     const points = gsap.utils.toArray('.pain-point')
     points.forEach((point) => {
       const num = point.querySelector('.pain-point-num')
@@ -65,49 +68,74 @@ export default function Conciencia() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: point,
-          start: 'top 78%',
-          end: 'top 42%',
+          start: 'top 85%',
+          end: 'top 50%',
           scrub: 0.8,
         },
       })
 
-      tl.fromTo(
-        num,
-        {
-          rotateY: -55,
-          scale: 0.78,
-          opacity: 0.18,
-          color: 'var(--text-tertiary)',
-          textShadow: '0 0 0 rgba(224, 188, 126, 0)',
-        },
-        {
-          rotateY: 0,
-          scale: 1,
-          opacity: 1,
-          color: 'var(--gold-bright)',
-          textShadow: '0 0 24px rgba(224, 188, 126, 0.45)',
-          ease: 'power3.out',
-          duration: 1,
-        },
-        0
-      )
-        .fromTo(
+      if (isMobile) {
+        // Mobile: animación sobria, sin rotateY 3D ni clipPath wipe
+        tl.fromTo(
+          num,
+          { scale: 0.92, opacity: 0.55, color: 'var(--text-tertiary)' },
+          {
+            scale: 1,
+            opacity: 1,
+            color: 'var(--gold-bright)',
+            ease: 'power2.out',
+            duration: 1,
+          },
+          0
+        ).fromTo(
           body,
-          { clipPath: 'inset(0 100% 0 0)', opacity: 0.4 },
-          { clipPath: 'inset(0 0% 0 0)', opacity: 1, ease: 'power2.out', duration: 1 },
-          0.15
+          { opacity: 0.55 },
+          { opacity: 1, ease: 'power2.out', duration: 1 },
+          0.1
         )
-        .fromTo(
-          marker,
-          { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, ease: 'back.out(2.4)', duration: 0.6 },
-          0.05
+        const tag = point.querySelector('.dato-tag')
+        if (tag) {
+          tl.fromTo(tag, { opacity: 0.4 }, { opacity: 1, ease: 'power2.out', duration: 0.6 }, 0.3)
+        }
+      } else {
+        // Desktop: efecto cinematográfico completo
+        tl.fromTo(
+          num,
+          {
+            rotateY: -55,
+            scale: 0.78,
+            opacity: 0.18,
+            color: 'var(--text-tertiary)',
+            textShadow: '0 0 0 rgba(224, 188, 126, 0)',
+          },
+          {
+            rotateY: 0,
+            scale: 1,
+            opacity: 1,
+            color: 'var(--gold-bright)',
+            textShadow: '0 0 24px rgba(224, 188, 126, 0.45)',
+            ease: 'power3.out',
+            duration: 1,
+          },
+          0
         )
+          .fromTo(
+            body,
+            { clipPath: 'inset(0 100% 0 0)', opacity: 0.4 },
+            { clipPath: 'inset(0 0% 0 0)', opacity: 1, ease: 'power2.out', duration: 1 },
+            0.15
+          )
+          .fromTo(
+            marker,
+            { scale: 0, opacity: 0 },
+            { scale: 1, opacity: 1, ease: 'back.out(2.4)', duration: 0.6 },
+            0.05
+          )
 
-      // Optional dato-tag fade in last
-      const tag = point.querySelector('.dato-tag')
-      if (tag) {
-        tl.fromTo(tag, { opacity: 0, x: -12 }, { opacity: 1, x: 0, ease: 'power2.out', duration: 0.6 }, 0.45)
+        const tag = point.querySelector('.dato-tag')
+        if (tag) {
+          tl.fromTo(tag, { opacity: 0, x: -12 }, { opacity: 1, x: 0, ease: 'power2.out', duration: 0.6 }, 0.45)
+        }
       }
     })
   }, [])

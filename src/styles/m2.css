@@ -754,14 +754,17 @@ body { font-family: var(--ff-sans); }
   .pain-point-marker { display: none; }
   .pain-point {
     flex-direction: column;
-    gap: 16px;
-    padding: 48px 0;
+    gap: 28px;          /* 16 → 28 — el número grande necesita aire */
+    padding: 56px 0;    /* 48 → 56 — más respiro entre items */
   }
   .pain-point-num {
     width: auto;
     min-height: 0;
     font-size: 4rem;
     transform-origin: left center;
+    /* Margen extra para garantizar que el shadow / box del número no
+       toque visualmente con el body siguiente */
+    margin-bottom: 4px;
   }
 
   .social-proof-grid {
@@ -780,7 +783,7 @@ body { font-family: var(--ff-sans); }
 @media (max-width: 360px) {
   .header { padding: 12px 14px; }
   .btn-nav { padding: 8px 14px; }
-  .pain-point { padding: 28px 0; gap: 12px; }
+  .pain-point { padding: 40px 0; gap: 20px; }  /* 28/12 → 40/20 */
   .pain-point-num { font-size: 2.4rem; }
 }
 
