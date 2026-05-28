@@ -420,8 +420,9 @@
   height: 100%;
   object-fit: cover;
   z-index: 0;
-  filter: blur(3px) brightness(0.38) saturate(0.85) contrast(0.94);
-  transform: scale(1.06);
+  /* +10% visibilidad: menos blur, más brightness, menos contrast clamp */
+  filter: blur(2px) brightness(0.52) saturate(0.95) contrast(0.98);
+  transform: scale(1.05);
   pointer-events: none;
 }
 
@@ -430,17 +431,19 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  /* Overlay aliviado ~12% para revelar más video sin sacrificar legibilidad
+     en los extremos donde vive el copy (top/bottom). */
   background:
     linear-gradient(
       180deg,
-      rgba(10, 7, 7, 0.94) 0%,
-      rgba(10, 7, 7, 0.82) 28%,
-      rgba(10, 7, 7, 0.85) 62%,
-      rgba(10, 7, 7, 0.97) 100%
+      rgba(10, 7, 7, 0.90) 0%,
+      rgba(10, 7, 7, 0.70) 30%,
+      rgba(10, 7, 7, 0.74) 62%,
+      rgba(10, 7, 7, 0.94) 100%
     ),
     radial-gradient(
-      ellipse at 50% 28%,
-      rgba(0, 0, 0, 0.35) 0%,
+      ellipse at 50% 30%,
+      rgba(0, 0, 0, 0.28) 0%,
       transparent 70%
     );
   opacity: 1;
@@ -845,4 +848,105 @@
   .testimonials-carousel .testimonial {
     padding: 32px 24px;
   }
+}
+
+/* ============================================================
+   QUIZ — más respiro arriba del heading "Tu piel merece…"
+   para separarlo visualmente del CTA premium anterior.
+   ============================================================ */
+.quiz-section {
+  padding-top: clamp(96px, 12vh, 144px);
+}
+@media (max-width: 768px) {
+  .quiz-section {
+    padding-top: clamp(72px, 10vh, 112px);
+  }
+}
+
+/* ============================================================
+   SIDESTEP — separar la CTA general de las tarjetas 3D.
+   Las cards tienen hover translateY(-4px) + rotateY, así que dejamos
+   margen amplio para que el botón nunca toque su zona visual.
+   ============================================================ */
+.services-all-cta-wrap {
+  margin-top: clamp(96px, 11vh, 128px);
+}
+@media (max-width: 600px) {
+  .services-all-cta-wrap {
+    margin-top: 68px;
+  }
+}
+
+/* ============================================================
+   PROOF MEDIA — marco dorado elegante para el video del procedimiento.
+   - Padding exterior crea el "passe-partout" de museo
+   - Borde dorado fino + glow inset sutil
+   - Esquinas con corner-marks doradas (sello editorial)
+   ============================================================ */
+.proof-media {
+  position: relative;
+  padding: 10px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(224, 188, 126, 0.18) 0%,
+      rgba(224, 188, 126, 0.04) 40%,
+      rgba(196, 155, 126, 0.10) 100%
+    );
+  border: 0.75px solid rgba(224, 188, 126, 0.35);
+  border-radius: 6px;
+  overflow: visible;
+  box-shadow:
+    inset 0 0 0 0.75px rgba(224, 188, 126, 0.10),
+    0 28px 56px -16px rgba(0, 0, 0, 0.5),
+    0 12px 24px -10px rgba(0, 0, 0, 0.35);
+  transition:
+    border-color 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out);
+}
+.proof-media:hover {
+  border-color: rgba(224, 188, 126, 0.55);
+  box-shadow:
+    inset 0 0 0 0.75px rgba(224, 188, 126, 0.18),
+    0 32px 72px -16px rgba(0, 0, 0, 0.55),
+    0 14px 28px -10px rgba(0, 0, 0, 0.4);
+}
+/* Corner-marks doradas en esquinas opuestas — sello editorial */
+.proof-media::before,
+.proof-media::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 0.75px solid var(--gold-bright);
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.72;
+}
+.proof-media::before {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+}
+.proof-media::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+}
+.proof-media-video {
+  border-radius: 3px;
+}
+.proof-media-overlay {
+  inset: 10px;
+  border-radius: 3px;
+}
+
+@media (max-width: 600px) {
+  .proof-media { padding: 8px; border-radius: 5px; }
+  .proof-media-video { border-radius: 2px; }
+  .proof-media-overlay { inset: 8px; }
+  .proof-media::before,
+  .proof-media::after { width: 14px; height: 14px; }
 }
