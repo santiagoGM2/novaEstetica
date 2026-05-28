@@ -1061,3 +1061,36 @@
     letter-spacing: 0.12em;
   }
 }
+
+/* ============================================================
+   QUIZ SUCCESS CTA — botón post-diagnóstico con logo WhatsApp
+   - Icono WhatsApp al inicio guía visualmente al destino
+   - Texto centrado + arrow al final para acción direccional
+   ============================================================ */
+.quiz-success-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 32px;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+}
+.quiz-success-cta svg {
+  flex-shrink: 0;
+}
+.quiz-success-cta > svg:first-child {
+  width: 20px;
+  height: 20px;
+}
+@media (max-width: 600px) {
+  .quiz-success-cta {
+    padding: 16px 24px;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    gap: 10px;
+  }
+  .quiz-success-cta > svg:first-child {
+    width: 18px;
+    height: 18px;
+  }
+}

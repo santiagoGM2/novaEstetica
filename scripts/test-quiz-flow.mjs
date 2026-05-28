@@ -48,8 +48,8 @@ async function setupPage(browser, options = {}) {
   page.consoleLogs = []
   page.on('console', (m) => page.consoleLogs.push({ type: m.type(), text: m.text() }))
 
-  await page.goto(TARGET, { waitUntil: 'networkidle', timeout: 30_000 })
-  await page.waitForTimeout(1000)
+  await page.goto(TARGET, { waitUntil: 'load', timeout: 30_000 })
+  await page.waitForTimeout(1200)
   return { ctx, page }
 }
 
@@ -189,10 +189,29 @@ async function testHappyPath(browser) {
     log('Payload del webhook correcto', payloadOk ? 'pass' : 'fail', JSON.stringify(payload))
   }
 
-  // Verificar que el success state muestra el CTA de WhatsApp
-  // (reemplaza al antiguo CTA hacia el calendar, ya eliminado).
-  const waCtaVisible = await page.locator('.quiz-success a[href*="wa.me"], .quiz-success a[href*="whatsapp.com"]').isVisible().catch(() => false)
-  log('Success state muestra CTA hacia WhatsApp', waCtaVisible ? 'pass' : 'fail')
+  // Success state debe mostrar el nuevo mensaje + CTA con logo WhatsApp.
+  const successTitle = await page.locator('.quiz-success-title').textContent().catch(() => '')
+  log('Success title: "¡Tu diagnóstico premium está listo!"',
+    /Tu diagn[oó]stico premium est[aá] listo/i.test(successTitle) ? 'pass' : 'fail',
+    `texto: "${successTitle.trim()}"`)
+
+  const successText = await page.locator('.quiz-success-text').textContent().catch(() => '')
+  log('Success body habla de notificar + acceso preferencial',
+    /notificarnos/i.test(successText) && /acceso preferencial/i.test(successText) ? 'pass' : 'fail',
+    `texto: "${successText.trim().slice(0, 80)}..."`)
+
+  const cta = page.locator('.quiz-success-cta')
+  const ctaHref = await cta.getAttribute('href').catch(() => null)
+  const expectedHref = 'https://api.whatsapp.com/send?phone=573105725730&text=Hola%20NOVA%2C%20ya%20hice%20mi%20diagn%C3%B3stico%20y%20estoy%20a%20la%20espera%20de%20mi%20invitaci%C3%B3n%20VIP.'
+  log('Success CTA apunta al link post-diagnóstico correcto',
+    ctaHref === expectedHref ? 'pass' : 'fail',
+    `href: ${ctaHref}`)
+
+  const hasWaIcon = await cta.locator('svg').first().evaluate((svg) => {
+    // El primer <svg> debe ser el de WhatsApp (viewBox 0 0 20 20 con path fill)
+    return svg.getAttribute('viewBox') === '0 0 20 20'
+  }).catch(() => false)
+  log('Success CTA incluye logo de WhatsApp como primer ícono', hasWaIcon ? 'pass' : 'fail')
 
   await ctx.close()
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowIcon, CheckIcon } from '../lib/icons'
+import { ArrowIcon, CheckIcon, WhatsAppIcon } from '../lib/icons'
 
 const ZONES = [
   { value: 'Axilas', icon: 'A' },
@@ -28,6 +28,10 @@ const TOTAL_STEPS = 4
 // --------------------------------------------------------------------------
 const WEBHOOK_URL = import.meta.env.VITE_GHL_WEBHOOK_URL
 const WHATSAPP_LINK = import.meta.env.VITE_WHATSAPP_LINK || null
+
+// Link específico para el botón post-diagnóstico (success state) — mensaje
+// que confirma a NOVA que la usuaria completó el quiz y espera su invitación VIP.
+const WHATSAPP_POSTDIAGNOSTIC = 'https://api.whatsapp.com/send?phone=573105725730&text=Hola%20NOVA%2C%20ya%20hice%20mi%20diagn%C3%B3stico%20y%20estoy%20a%20la%20espera%20de%20mi%20invitaci%C3%B3n%20VIP.'
 const MOCK_WEBHOOK = import.meta.env.DEV && !WEBHOOK_URL
 
 // Simple email validation — rechaza espacios, exige @ y al menos un .
@@ -345,21 +349,20 @@ export default function Quiz({ seed }) {
             <div className="quiz-success-icon">
               <CheckIcon />
             </div>
-            <p className="quiz-success-title">Diagnóstico registrado.</p>
+            <p className="quiz-success-title">¡Tu diagnóstico premium está listo!</p>
             <p className="quiz-success-text">
-              Recibirás tu invitación VIP por WhatsApp en los próximos minutos.
+              El último paso para asegurar tus beneficios es notificarnos. Haz clic en el botón de abajo para activar tu acceso preferencial de inmediato.
             </p>
-            {WHATSAPP_LINK && (
-              <a
-                href={WHATSAPP_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary"
-              >
-                Escribirnos por WhatsApp
-                <ArrowIcon />
-              </a>
-            )}
+            <a
+              href={WHATSAPP_POSTDIAGNOSTIC}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary quiz-success-cta"
+            >
+              <WhatsAppIcon />
+              Escribirnos por WhatsApp
+              <ArrowIcon />
+            </a>
           </div>
         )}
       </div>
