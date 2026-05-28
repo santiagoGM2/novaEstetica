@@ -1,5 +1,4 @@
-import { scrollToId } from '../lib/scrollTo'
-import { ArrowIcon, InstagramIcon, MapPinIcon, WhatsAppIcon } from '../lib/icons'
+import { InstagramIcon, MapPinIcon, WhatsAppIcon } from '../lib/icons'
 
 const INSTAGRAM_URL = 'https://www.instagram.com/nova_aestheticp/'
 const MAPS_URL = 'https://maps.app.goo.gl/?q=Nova+aesthetic+professionals'
@@ -14,18 +13,6 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-content">
-        <span className="footer-badge" role="status" aria-live="polite">
-          <span className="footer-badge-pulse" aria-hidden="true" />
-          Última semana · Cupos contados
-        </span>
-        <h2 className="footer-headline">
-          Solo <span className="spots">5 valoraciones premium</span> disponibles esta semana.
-        </h2>
-        <a href="#quiz" className="btn-primary footer-cta" onClick={(e) => scrollToId('quiz', e)}>
-          Reclamar mi Valoración Gratuita y asegurar mi cupo
-          <ArrowIcon />
-        </a>
-
         <div className="footer-brand">
           <picture>
             <source srcSet="/assets/logo/logo.webp" type="image/webp" />

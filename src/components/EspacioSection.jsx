@@ -148,9 +148,6 @@ export default function EspacioSection() {
             Reservar mi Diagnóstico Premium de Cortesía
             <ArrowIcon />
           </a>
-          <p className="espacio-foot-note">
-            Evaluación científica de tu piel en 2 minutos · Cupos VIP limitados.
-          </p>
         </div>
       </div>
     </section>
