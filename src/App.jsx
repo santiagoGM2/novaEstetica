@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useScrollReveal } from './hooks/useScrollReveal'
 import SmoothScrollProvider from './components/SmoothScrollProvider'
 import ScrollProgress from './components/ScrollProgress'
@@ -18,20 +17,6 @@ export default function App() {
   // uses them). New components animate via GSAP ScrollTrigger directly.
   useScrollReveal()
 
-  // Seed que el Quiz lee al montar para pre-seleccionar la zona desde
-  // las tarjetas de servicios. `key` fuerza re-evaluación cada vez que
-  // el usuario clickea otra tarjeta.
-  const [quizSeed, setQuizSeed] = useState(null)
-
-  const handlePickService = (zone) => {
-    // zone === null → solo scrolleamos sin pre-seleccionar (caso Corporales)
-    setQuizSeed(zone ? { preselectZone: zone, key: Date.now() } : null)
-    setTimeout(() => {
-      const q = document.getElementById('quiz')
-      if (q) q.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 30)
-  }
-
   return (
     <SmoothScrollProvider>
       <ScrollProgress />
@@ -41,8 +26,8 @@ export default function App() {
         <Hero />
         <EspacioSection />
         <Conciencia />
-        <SideStep onPickService={handlePickService} />
-        <Quiz seed={quizSeed} />
+        <SideStep />
+        <Quiz />
         <SocialProof />
       </main>
       <Footer />

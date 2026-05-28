@@ -57,3 +57,52 @@ export const CalendarIcon = (props) => (
     <path d="M3 8h14M7 2.5v3M13 2.5v3" strokeLinecap="round" />
   </svg>
 )
+
+/* --- Subtle line icons for FENIX benefits (gold, hairline, ~1.1 stroke) --- */
+
+export const WavesIcon = (props) => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M3 9c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2" opacity="0.55" />
+    <path d="M3 14c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2" />
+    <path d="M3 19c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2" opacity="0.75" />
+    <path d="M3 24c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2" opacity="0.45" />
+  </svg>
+)
+
+export const SnowflakeIcon = (props) => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M14 3v22M3 14h22" />
+    <path d="M5.5 5.5l17 17M22.5 5.5l-17 17" opacity="0.7" />
+    <path d="M14 6.5l-2 -2M14 6.5l2 -2M14 21.5l-2 2M14 21.5l2 2" />
+    <path d="M6.5 14l-2 -2M6.5 14l-2 2M21.5 14l2 -2M21.5 14l2 2" opacity="0.7" />
+  </svg>
+)
+
+export const ShieldCellIcon = (props) => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M14 3l-9 4v7c0 5.5 4 9.5 9 11 5-1.5 9-5.5 9-11V7z" />
+    <circle cx="14" cy="13" r="3" opacity="0.7" />
+    <path d="M14 10v6M11 13h6" opacity="0.5" />
+  </svg>
+)
+
+export const CrosshairIcon = (props) => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <circle cx="14" cy="14" r="9" />
+    <circle cx="14" cy="14" r="4" opacity="0.65" />
+    <path d="M14 2v5M14 21v5M2 14h5M21 14h5" />
+    <circle cx="14" cy="14" r="1" fill="currentColor" stroke="none" />
+  </svg>
+)
+
+export const ChevronLeftIcon = (props) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M11 4l-5 5 5 5" />
+  </svg>
+)
+
+export const ChevronRightIcon = (props) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M7 4l5 5-5 5" />
+  </svg>
+)

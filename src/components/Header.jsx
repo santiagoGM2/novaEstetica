@@ -32,6 +32,13 @@ export default function Header() {
         >
           <InstagramIcon />
         </a>
+        <a
+          href="#protocolos"
+          className="btn-nav btn-nav-ghost"
+          onClick={(e) => scrollToId('protocolos', e)}
+        >
+          Otros Protocolos VIP
+        </a>
         <a href="#quiz" className="btn-nav" onClick={(e) => scrollToId('quiz', e)}>
           Ver Disponibilidad VIP
         </a>

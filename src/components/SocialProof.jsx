@@ -1,19 +1,49 @@
-import { useEffect, useRef } from 'react'
-import { StarIcon, ShieldIcon, PersonIcon } from '../lib/icons'
+import { useEffect, useRef, useState } from 'react'
+import {
+  StarIcon,
+  ShieldIcon,
+  PersonIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '../lib/icons'
 import { gsap, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
 
 const testimonials = [
   {
-    quote: 'Por fin encontré un lugar en Cali que entiende mi ritmo de vida.',
-    avatar: 'V',
-    name: 'Valentina M.',
-    role: 'Gerente Comercial · Cali',
+    id: 'luisa',
+    quote:
+      'Excelente servicio, instalaciones muy cómodas y un equipo profesional que te hace sentir realmente atendida. Súper recomendado.',
+    name: 'Luisa Fer. Córdoba Triviño',
+    role: 'Cliente verificada · Google',
+    avatar:
+      'https://lh3.googleusercontent.com/a-/ALV-UjVar8BxsARq2Jp1SFPOhAD_fq5A-xf4_1z8ipgRh1FIgGX16MEtcg=w72-h72-p-rp-mo-ba3-br100',
   },
   {
-    quote: 'Estar siempre lista para el gimnasio, para una reunión, para cualquier cosa. Eso no tiene precio.',
-    avatar: 'C',
-    name: 'Carolina R.',
-    role: 'Empresaria · Cali',
+    id: 'ana',
+    quote:
+      'Maravillosa atención y excelente trabajo. Los resultados se ven desde la primera sesión, definitivamente vuelvo.',
+    name: 'Ana Cristina Triviño Aparicio',
+    role: 'Cliente verificada · Google',
+    avatar:
+      'https://lh3.googleusercontent.com/a/ACg8ocLl9ex2u8Hcw5zQ4bh9aTlN67Zg-CU_YeKGCXBV5GPX42HGSQ=w72-h72-p-rp-mo-br100',
+  },
+  {
+    id: 'ciara',
+    quote:
+      'Lo súper recomiendo. Realizan unos buenos procedimientos, con dedicación y profesionalismo en cada detalle.',
+    name: 'Ciara Riascos Campo',
+    role: 'Cliente verificada · Google',
+    avatar:
+      'https://lh3.googleusercontent.com/a/ACg8ocJ1y4Iv4jH-zG4W7NFP08ENYDqfM77fkKTaNcv8p0cOnW9OGg=w72-h72-p-rp-mo-br100',
+  },
+  {
+    id: 'aurora',
+    quote:
+      'Excelente servicio, me gustó mucho. El trato cercano y los resultados visibles hacen toda la diferencia.',
+    name: 'Aurora Olave',
+    role: 'Cliente verificada · Google',
+    avatar:
+      'https://lh3.googleusercontent.com/a-/ALV-UjWU24rdTkrB9W1mdKgzS2tizU151gLza2dYtriTjkpEczz5WPaUug=w72-h72-p-rp-mo-br100',
   },
 ]
 
@@ -83,7 +113,7 @@ function StarRow() {
   )
 }
 
-function TestimonialCard({ quote, avatar, name, role }) {
+function TestimonialCard({ quote, name, role, avatar }) {
   const ref = useRef(null)
   useCardTilt(ref)
   return (
@@ -91,7 +121,16 @@ function TestimonialCard({ quote, avatar, name, role }) {
       <StarRow />
       <p className="testimonial-quote">{quote}</p>
       <div className="testimonial-author">
-        <div className="testimonial-avatar" aria-hidden="true">{avatar}</div>
+        <img
+          className="testimonial-avatar"
+          src={avatar}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          width="44"
+          height="44"
+        />
         <div>
           <p className="testimonial-name">{name}</p>
           <p className="testimonial-role">{role}</p>
@@ -101,7 +140,78 @@ function TestimonialCard({ quote, avatar, name, role }) {
   )
 }
 
-function BeforeAfterMedia() {
+/**
+ * Carousel that shows 2 testimonials at a time on desktop (1 on mobile)
+ * with prev/next controls. Pages through the testimonials list.
+ */
+function TestimonialsCarousel({ items }) {
+  const [page, setPage] = useState(0)
+  // perPage = 2 on desktop, 1 on mobile (set by CSS, but JS needs to know to
+  // page correctly). Track via matchMedia.
+  const [perPage, setPerPage] = useState(2)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const sync = () => setPerPage(mq.matches ? 1 : 2)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  const totalPages = Math.max(1, Math.ceil(items.length / perPage))
+  const currentPage = Math.min(page, totalPages - 1)
+  const start = currentPage * perPage
+  const visible = items.slice(start, start + perPage)
+
+  const goPrev = () => setPage((p) => (p - 1 + totalPages) % totalPages)
+  const goNext = () => setPage((p) => (p + 1) % totalPages)
+
+  return (
+    <div className="testimonials-carousel">
+      <div className="testimonials" role="list" aria-live="polite">
+        {visible.map((t) => (
+          <TestimonialCard key={t.id} {...t} />
+        ))}
+      </div>
+
+      <div className="testimonials-controls" aria-label="Navegación de testimonios">
+        <button
+          type="button"
+          className="testimonials-arrow"
+          aria-label="Testimonios anteriores"
+          onClick={goPrev}
+          disabled={totalPages <= 1}
+        >
+          <ChevronLeftIcon />
+        </button>
+
+        <div className="testimonials-dots" role="tablist">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              className={`testimonials-dot${i === currentPage ? ' active' : ''}`}
+              aria-label={`Ir a página ${i + 1} de ${totalPages}`}
+              aria-current={i === currentPage ? 'true' : undefined}
+              onClick={() => setPage(i)}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="testimonials-arrow"
+          aria-label="Testimonios siguientes"
+          onClick={goNext}
+          disabled={totalPages <= 1}
+        >
+          <ChevronRightIcon />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ProcedureMedia() {
   const videoRef = useRef(null)
 
   // Always autoplay loop. Pause when off-screen to save decode work.
@@ -124,17 +234,17 @@ function BeforeAfterMedia() {
       <video
         ref={videoRef}
         className="proof-media-video"
-        src="/assets/videos/antes-despues.mp4"
+        src="/assets/videos/procedimiento-nova.mp4"
         muted
         loop
         playsInline
         autoPlay
         preload="metadata"
-        aria-label="Comparativa antes y después de tratamientos en Nova"
+        aria-label="Procedimiento de depilación láser en Nova Aesthetic Professionals"
       />
       <div className="proof-media-overlay" aria-hidden="true">
-        <span className="proof-media-label">Antes · Después</span>
-        <span className="proof-media-cta">Resultado real · clientas premium</span>
+        <span className="proof-media-label">Procedimiento real</span>
+        <span className="proof-media-cta">Sesión Fenix 4 · Nova Aesthetic Professionals</span>
       </div>
     </div>
   )
@@ -174,12 +284,8 @@ export default function SocialProof() {
       <span className="section-label" id="proof-heading">Lo que dicen nuestras clientas</span>
 
       <div className="social-proof-grid">
-        <div className="testimonials" role="list">
-          {testimonials.map((t) => (
-            <TestimonialCard key={t.name} {...t} />
-          ))}
-        </div>
-        <BeforeAfterMedia />
+        <TestimonialsCarousel items={testimonials} />
+        <ProcedureMedia />
       </div>
 
       <div className="proof-stats" role="list">

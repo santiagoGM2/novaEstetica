@@ -279,33 +279,42 @@ async function testEmptyEmailIsValid(browser) {
 }
 
 // =====================================================================
-// TEST 7: pre-selección de zona "Rostro" desde tarjeta Faciales
+// TEST 7: tarjetas de servicios abren WhatsApp con mensaje personalizado
 // =====================================================================
-// Click en la card Faciales → CTA → debe scrollear al quiz y dejar
-// al usuario en el paso 2 con un hint "Seleccionaste: Rostro · cambiar".
-async function testServicePreselectFaciales(browser) {
-  console.log('\n[TEST 7] Pre-selección zona desde tarjeta Faciales')
+// Cada card (Faciales · Cejas & Pestañas · Corporales) tiene una CTA que
+// es un <a href="https://api.whatsapp.com/send?phone=573105725730&text=...">.
+// Verificamos los hrefs sin disparar la navegación.
+async function testServiceCardsWhatsAppLinks(browser) {
+  console.log('\n[TEST 7] Tarjetas de servicios → WhatsApp links')
   const { ctx, page } = await setupPage(browser)
 
-  // Click en la CTA "Iniciar mi Diagnóstico Facial" dentro de la primera card
-  const facialesCta = page.locator('.service-card:has-text("Faciales") .service-card-cta')
-  await facialesCta.scrollIntoViewIfNeeded()
-  await facialesCta.click()
-  await page.waitForTimeout(900)
+  const expected = [
+    { match: 'Faciales',          keyword: 'Faciales%20Premium' },
+    { match: 'Cejas',             keyword: 'Dise%C3%B1o%20de%20Mirada%20Ejecutiva' },
+    { match: 'Corporales',        keyword: 'Escultura%20Corporal%20High-End' },
+  ]
 
-  // Esperar a que el paso 2 esté visible (la pregunta de horas)
-  const onStep2 = await page
-    .locator('.quiz-step.active:has-text("¿Cuántas horas")')
-    .isVisible()
-    .catch(() => false)
-  log('Quiz avanzó automáticamente al paso 2 tras seleccionar Faciales',
-    onStep2 ? 'pass' : 'fail')
+  for (const { match, keyword } of expected) {
+    const cta = page.locator(`.service-card:has-text("${match}") .service-card-cta`).first()
+    await cta.scrollIntoViewIfNeeded().catch(() => {})
+    const href = await cta.getAttribute('href').catch(() => null)
+    const ok = href && href.startsWith('https://api.whatsapp.com/send?phone=573105725730') && href.includes(keyword)
+    log(`Card "${match}" abre WhatsApp con mensaje correcto`,
+      ok ? 'pass' : 'fail',
+      `href: ${href}`)
+  }
 
-  // El hint "Seleccionaste: Rostro" debe ser visible
-  const hintText = await page.locator('.quiz-preselect-hint').textContent().catch(() => '')
-  log('Hint de pre-selección muestra "Rostro"',
-    /Seleccionaste/i.test(hintText) && /Rostro/i.test(hintText) ? 'pass' : 'fail',
-    `texto: "${hintText.replace(/\s+/g, ' ').trim()}"`)
+  // CTA general "Quiero ver todos los servicios"
+  const generalCta = page.locator('.services-all-cta').first()
+  await generalCta.scrollIntoViewIfNeeded().catch(() => {})
+  const generalHref = await generalCta.getAttribute('href').catch(() => null)
+  const generalOk =
+    generalHref &&
+    generalHref.startsWith('https://api.whatsapp.com/send?phone=573105725730') &&
+    generalHref.includes('otros%20servicios')
+  log('CTA general abre WhatsApp con mensaje "otros servicios"',
+    generalOk ? 'pass' : 'fail',
+    `href: ${generalHref}`)
 
   await ctx.close()
 }
@@ -324,7 +333,7 @@ async function main() {
     await testMissingAnswersSkipped()
     await testInvalidEmail(browser)
     await testEmptyEmailIsValid(browser)
-    await testServicePreselectFaciales(browser)
+    await testServiceCardsWhatsAppLinks(browser)
   } finally {
     await browser.close()
   }

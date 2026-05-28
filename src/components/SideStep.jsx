@@ -1,32 +1,41 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
+import { ArrowIcon, WhatsAppIcon } from '../lib/icons'
 
 const services = [
   {
     idx: '01 · Faciales',
     name: ['Para rostros que', 'proyectan seguridad.'],
-    desc: 'Tratamientos diseñados para reflejar la misma confianza que proyectas en cualquier sala.',
-    cta: 'Iniciar mi Diagnóstico Facial',
-    pickZone: 'Rostro',
+    desc: 'Limpieza profunda, hidratación de alta gama y bioestimulación con activos premium. Resultados visibles desde la primera sesión.',
+    highlights: ['Limpieza Premium', 'Hidrafacial', 'PDRN', 'Exosomas'],
+    cta: 'Consultar Faciales por WhatsApp',
+    whatsapp:
+      'https://api.whatsapp.com/send?phone=573105725730&text=Hola%20NOVA%2C%20quiero%20conocer%20m%C3%A1s%20sobre%20el%20servicio%20de%20Faciales%20Premium.',
   },
   {
     idx: '02 · Cejas & Pestañas',
-    name: ['Diseño de mirada ejecutiva.'],
-    desc: 'Una mirada que comunica antes de que digas una sola palabra.',
-    cta: 'Iniciar mi Diagnóstico de Mirada',
-    pickZone: 'Rostro',
+    name: ['Diseño de mirada', 'ejecutiva.'],
+    desc: 'Diseño y arquitectura de mirada para mujeres que comunican antes de hablar. Bajo mantenimiento, alto impacto.',
+    highlights: ['Lifting de Pestañas', 'Diseño en Henna', 'Laminado', 'Depilación Cejas'],
+    cta: 'Consultar Diseño de Mirada',
+    whatsapp:
+      'https://api.whatsapp.com/send?phone=573105725730&text=Hola%20NOVA%2C%20quiero%20conocer%20m%C3%A1s%20sobre%20el%20servicio%20de%20Dise%C3%B1o%20de%20Mirada%20Ejecutiva.',
   },
   {
     idx: '03 · Corporales',
-    name: ['Escultura corporal High-End.'],
-    desc: 'Protocolo de remodelación para quienes exigen resultados de alto rendimiento.',
-    cta: 'Iniciar mi Diagnóstico Corporal',
-    // null → el usuario elige Axilas/Bikini/Piernas en paso 1
-    pickZone: null,
+    name: ['Escultura corporal', 'High-End.'],
+    desc: 'Protocolo de remodelación y firmeza para quienes exigen resultados de alto rendimiento, sin tiempos de recuperación largos.',
+    highlights: ['Reafirmante', 'Modelado', 'Drenaje VIP', 'Firmeza Premium'],
+    cta: 'Consultar Escultura Corporal',
+    whatsapp:
+      'https://api.whatsapp.com/send?phone=573105725730&text=Hola%20NOVA%2C%20quiero%20conocer%20m%C3%A1s%20sobre%20el%20servicio%20de%20Escultura%20Corporal%20High-End.',
   },
 ]
 
-export default function SideStep({ onPickService }) {
+const ALL_SERVICES_WHATSAPP =
+  'https://api.whatsapp.com/send?phone=573105725730&text=Hola%20NOVA%2C%20quiero%20conocer%20tus%20otros%20servicios%20disponibles.'
+
+export default function SideStep() {
   const sectionRef = useRef(null)
   const trackRef = useRef(null)
   const [activeIdx, setActiveIdx] = useState(0)
@@ -72,10 +81,23 @@ export default function SideStep({ onPickService }) {
       ease: 'cubic-bezier(0.23, 1, 0.32, 1)',
       scrollTrigger: { trigger: '.services-grid', start: 'top 80%' },
     })
+
+    gsap.from('.services-all-cta', {
+      opacity: 0,
+      y: 18,
+      duration: 0.8,
+      ease: 'power2.out',
+      scrollTrigger: { trigger: '.services-all-cta-wrap', start: 'top 92%' },
+    })
   }, [])
 
   return (
-    <section ref={sectionRef} className="side-step" aria-labelledby="sidestep-heading">
+    <section
+      ref={sectionRef}
+      id="protocolos"
+      className="side-step"
+      aria-labelledby="sidestep-heading"
+    >
       <div className="side-step-inner">
         <div className="side-step-head">
           <div>
@@ -84,13 +106,14 @@ export default function SideStep({ onPickService }) {
               Tu Evolución no termina en la piel suave.
             </h2>
           </div>
-          <button
-            type="button"
+          <a
+            href={ALL_SERVICES_WHATSAPP}
             className="btn-ghost reveal-target"
-            onClick={() => onPickService?.(null)}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Ver Protocolos VIP
-          </button>
+          </a>
         </div>
 
         <div className="services-grid" ref={trackRef}>
@@ -103,13 +126,22 @@ export default function SideStep({ onPickService }) {
                 ))}
               </h3>
               <p className="service-card-desc">{s.desc}</p>
-              <button
-                type="button"
+              {s.highlights && (
+                <ul className="service-card-highlights" aria-label="Tratamientos incluidos">
+                  {s.highlights.map((h) => (
+                    <li key={h}>{h}</li>
+                  ))}
+                </ul>
+              )}
+              <a
+                href={s.whatsapp}
                 className="service-card-cta btn-outline"
-                onClick={() => onPickService?.(s.pickZone)}
+                target="_blank"
+                rel="noopener noreferrer"
               >
+                <WhatsAppIcon />
                 {s.cta}
-              </button>
+              </a>
             </div>
           ))}
         </div>
@@ -126,6 +158,22 @@ export default function SideStep({ onPickService }) {
               onClick={() => goToDot(i)}
             />
           ))}
+        </div>
+
+        {/* General CTA below the 3 cards */}
+        <div className="services-all-cta-wrap">
+          <a
+            href={ALL_SERVICES_WHATSAPP}
+            className="btn-primary services-all-cta"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Quiero ver todos los servicios
+            <ArrowIcon />
+          </a>
+          <p className="services-all-cta-note">
+            Conversación directa con nuestro equipo · respuesta en minutos.
+          </p>
         </div>
       </div>
     </section>
