@@ -391,211 +391,265 @@
 }
 
 /* ============================================================
-   ESPACIO — CTA dentro del stage pinneado (inicio diagnóstico)
+   ESPACIO v5 — FENIX educational hero con video de fondo
+   - El video (fenix-instalaciones) cubre toda la sección como textura
+     atmosférica; un overlay denso garantiza legibilidad del copy.
+   - Todo el contenido FENIX (eyebrow + título + intro + 4 beneficios
+     + CTA + footnote) vive sobre el video, sin pinning.
+   - Padding-bottom amplio reserva espacio libre para los FABs flotantes
+     (~96px de safe zone en mobile).
+   - Cards de beneficios con backdrop-filter para que el video respire
+     pero no compita con el texto.
    ============================================================ */
-.espacio-cta {
-  margin-top: 36px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 30px;
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
-  color: var(--cream);
-  background: rgba(10, 7, 7, 0.42);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border-color: rgba(224, 188, 126, 0.55);
-}
-.espacio-cta:hover {
-  background: rgba(224, 188, 126, 0.12);
-  border-color: var(--gold-bright);
-  color: var(--gold-bright);
-}
-@media (max-width: 600px) {
-  .espacio-cta { margin-top: 24px; padding: 12px 22px; font-size: 0.68rem; }
+.espacio {
+  position: relative;
+  width: 100%;
+  padding:
+    clamp(96px, 13vh, 148px)
+    var(--pad-edge)
+    clamp(160px, 20vh, 220px);
+  overflow: hidden;
+  background: var(--bg-base);
+  isolation: isolate;
 }
 
-/* ============================================================
-   FENIX BLOCK — Tecnología FENIX, sección educativa premium
-   - Fondo oscuro coherente con la página, sin video que compita
-   - Título con accent dorado en cursiva
-   - 4 beneficios en grid con iconos hairline
-   ============================================================ */
-.fenix-block {
-  position: relative;
-  padding: clamp(96px, 12vh, 144px) var(--pad-edge);
+.espacio-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  filter: blur(3px) brightness(0.38) saturate(0.85) contrast(0.94);
+  transform: scale(1.06);
+  pointer-events: none;
+}
+
+.espacio-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
   background:
-    radial-gradient(
-      ellipse at 50% -10%,
-      rgba(224, 188, 126, 0.07) 0%,
-      transparent 55%
-    ),
     linear-gradient(
       180deg,
-      rgba(10, 7, 7, 1) 0%,
-      rgba(14, 10, 9, 1) 50%,
-      rgba(10, 7, 7, 1) 100%
+      rgba(10, 7, 7, 0.94) 0%,
+      rgba(10, 7, 7, 0.82) 28%,
+      rgba(10, 7, 7, 0.85) 62%,
+      rgba(10, 7, 7, 0.97) 100%
+    ),
+    radial-gradient(
+      ellipse at 50% 28%,
+      rgba(0, 0, 0, 0.35) 0%,
+      transparent 70%
     );
-  border-top: 0.75px solid var(--border-subtle);
-  border-bottom: 0.75px solid var(--border-subtle);
+  opacity: 1;
 }
-.fenix-block::before {
-  content: '';
+
+/* Sutil ruido de cine para integrar video + dark UI */
+.espacio-grain {
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1px;
-  height: 64px;
-  background: linear-gradient(
-    to bottom,
-    var(--gold-bright) 0%,
-    transparent 100%
-  );
-  opacity: 0.5;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px);
+  background-size: 3px 3px;
 }
-.fenix-inner {
+
+/* Override del max-width 60ch heredado de m2.css */
+.espacio .espacio-content {
+  position: relative;
+  z-index: 3;
   max-width: 1180px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  padding: 0;
 }
-.fenix-head {
-  max-width: 760px;
-  margin-bottom: 64px;
+
+.espacio-head {
+  max-width: 800px;
+  margin-bottom: clamp(56px, 8vh, 80px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.fenix-head .section-label {
-  margin-bottom: 28px;
+
+.espacio-eyebrow {
+  margin-bottom: 26px;
+  color: var(--gold-bright);
 }
-.fenix-title {
+
+/* Override del título heredado de m2.css */
+.espacio .espacio-title {
   font-family: var(--ff-display);
   font-weight: 400;
-  font-size: clamp(2rem, 4.6vw, 3.4rem);
+  font-size: clamp(2rem, 4.6vw, 3.5rem);
   line-height: 1.1;
   color: var(--cream);
-  margin-bottom: 30px;
+  margin: 0 0 32px;
   letter-spacing: -0.005em;
+  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.7);
+  max-width: 18ch;
 }
-.fenix-title-accent {
+.espacio-title-accent {
+  display: block;
   color: var(--gold-bright);
   font-style: italic;
-  text-shadow: 0 0 28px rgba(224, 188, 126, 0.3);
+  margin-top: 0.1em;
+  text-shadow:
+    0 0 32px rgba(224, 188, 126, 0.32),
+    0 2px 32px rgba(0, 0, 0, 0.7);
 }
-.fenix-intro {
+
+.espacio-intro {
   font-family: var(--ff-sans);
   font-size: clamp(1rem, 1.4vw, 1.13rem);
   line-height: 1.75;
   color: var(--text-primary);
   max-width: 62ch;
-  margin: 0 auto;
+  margin: 0;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
-.fenix-intro strong {
+.espacio-intro strong {
   color: var(--gold-bright);
   font-weight: 500;
   letter-spacing: 0.01em;
 }
-.fenix-subhead {
+
+.espacio-subhead {
   font-family: var(--ff-serif);
   font-style: italic;
   font-weight: 400;
   font-size: clamp(1.2rem, 2vw, 1.55rem);
   color: var(--cream);
-  margin-bottom: 56px;
+  margin: 0 0 48px;
   letter-spacing: -0.005em;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.6);
 }
-.fenix-grid {
+
+.espacio-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 28px;
+  gap: 18px;
   width: 100%;
   list-style: none;
   padding: 0;
-  margin: 0 0 72px;
+  margin: 0 0 clamp(56px, 8vh, 76px);
 }
-.fenix-benefit {
+
+.espacio-benefit {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
-  padding: 32px 28px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 0.75px solid var(--border-subtle);
+  padding: 30px 26px;
+  background: rgba(14, 10, 9, 0.72);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  border: 0.75px solid rgba(224, 188, 126, 0.18);
   border-radius: 4px;
   transition:
     border-color 0.35s var(--ease-out),
     background 0.35s var(--ease-out),
     transform 0.35s var(--ease-out);
 }
-.fenix-benefit:hover {
-  border-color: rgba(224, 188, 126, 0.35);
-  background: rgba(224, 188, 126, 0.04);
+.espacio-benefit:hover {
+  border-color: rgba(224, 188, 126, 0.42);
+  background: rgba(20, 14, 12, 0.82);
   transform: translateY(-3px);
 }
-.fenix-benefit-icon {
+.espacio-benefit-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  margin-bottom: 22px;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 20px;
   color: var(--gold-bright);
-  border: 0.75px solid rgba(224, 188, 126, 0.35);
+  border: 0.75px solid rgba(224, 188, 126, 0.4);
   border-radius: 50%;
-  background: rgba(224, 188, 126, 0.04);
+  background: rgba(224, 188, 126, 0.06);
 }
-.fenix-benefit-title {
+.espacio-benefit-title {
   font-family: var(--ff-sans);
   font-weight: 500;
-  font-size: 0.96rem;
+  font-size: 0.95rem;
   letter-spacing: 0.01em;
   color: var(--cream);
-  margin: 0 0 12px;
+  margin: 0 0 11px;
 }
-.fenix-benefit-body {
+.espacio-benefit-body {
   font-family: var(--ff-sans);
-  font-size: 0.86rem;
+  font-size: 0.83rem;
   line-height: 1.65;
   color: var(--text-2);
   margin: 0;
 }
-.fenix-foot {
+
+.espacio-foot {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
+  max-width: 720px;
+  margin: 0 auto;
 }
-.fenix-cta {
-  padding: 18px 38px;
-  font-size: 0.8rem;
+.espacio-cta {
+  padding: 18px 36px;
+  font-size: 0.78rem;
   letter-spacing: 0.14em;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
-.fenix-foot-note {
+.espacio-foot-note {
   font-family: var(--ff-sans);
   font-size: 0.78rem;
   color: var(--text-2);
   letter-spacing: 0.04em;
   margin: 0;
+  max-width: 52ch;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
 
 @media (max-width: 960px) {
-  .fenix-grid {
+  .espacio-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
+    gap: 14px;
   }
 }
-@media (max-width: 560px) {
-  .fenix-block { padding: 80px 20px; }
-  .fenix-head { margin-bottom: 44px; }
-  .fenix-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    margin-bottom: 52px;
+
+@media (max-width: 600px) {
+  .espacio {
+    /* +60px de padding-bottom extra para mantener footnote arriba de FABs */
+    padding: 88px 20px 220px;
   }
-  .fenix-benefit { padding: 26px 22px; }
-  .fenix-cta { padding: 16px 26px; font-size: 0.72rem; letter-spacing: 0.12em; }
+  .espacio-head { margin-bottom: 44px; }
+  .espacio .espacio-title { max-width: none; }
+  .espacio-subhead { margin-bottom: 36px; }
+  .espacio-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .espacio-benefit { padding: 24px 22px; }
+  .espacio-cta { padding: 16px 26px; font-size: 0.7rem; letter-spacing: 0.12em; }
+  .espacio-foot {
+    /* Mantener el contenido fuera de la columna de FABs (right: 22px, ~70px wide) */
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+  .espacio-foot-note { font-size: 0.72rem; }
+}
+
+@media (max-width: 380px) {
+  .espacio { padding-bottom: 240px; }
 }
 
 /* ============================================================

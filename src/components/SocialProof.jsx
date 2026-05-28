@@ -298,7 +298,7 @@ export default function SocialProof() {
           <span className="proof-stat-label">mujeres premium<br />atendidas en Cali</span>
         </div>
         <div className="proof-stat" role="listitem">
-          <span className="proof-stat-num">4.9 / 5</span>
+          <span className="proof-stat-num">5 / 5</span>
           <span className="proof-stat-label">valoración promedio<br />después de la primera sesión</span>
         </div>
       </div>

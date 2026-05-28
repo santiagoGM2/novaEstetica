@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { gsap, ScrollTrigger, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
+import { gsap, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
 import { scrollToId } from '../lib/scrollTo'
 import {
   ArrowIcon,
@@ -34,7 +34,6 @@ const FENIX_BENEFITS = [
 
 export default function EspacioSection() {
   const sectionRef = useRef(null)
-  const fenixRef = useRef(null)
   const videoRef = useRef(null)
 
   // Play/pause based on visibility — saves decode work when off-screen.
@@ -52,144 +51,106 @@ export default function EspacioSection() {
     return () => io.disconnect()
   }, [])
 
-  // Pinned video stage timeline
+  // Reveal-on-scroll for content. No pinning — the section is naturally tall
+  // and the video fills the whole section as atmospheric background.
   useGSAPScrollTrigger(sectionRef, () => {
-    const pin = ScrollTrigger.create({
-      trigger: '.espacio-stage',
-      start: 'top top',
-      end: '+=100%',
-      pin: true,
-      pinSpacing: true,
-      anticipatePin: 1,
-    })
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: '.espacio-stage',
-        start: 'top top',
-        end: '+=100%',
-        scrub: 0.8,
-      },
-    })
-
-    tl.from('.espacio-eyebrow', { opacity: 0, y: 24 }, 0)
-      .from('.espacio-title', { opacity: 0, y: 36 }, 0.05)
-      .from('.espacio-sub', { opacity: 0, y: 24 }, 0.18)
-      .from('.espacio-cta', { opacity: 0, y: 16 }, 0.32)
-      .to('.espacio-overlay', { opacity: 0.55 }, 0)
-      .to('.espacio-video', { filter: 'blur(0px) saturate(1.05)' }, 0)
-
-    return () => pin.kill()
-  }, [])
-
-  // FENIX block reveal
-  useGSAPScrollTrigger(fenixRef, () => {
-    gsap.from('.fenix-head .reveal-target', {
-      opacity: 0,
-      y: 28,
-      stagger: 0.08,
-      duration: 0.85,
-      ease: 'power3.out',
-      scrollTrigger: { trigger: fenixRef.current, start: 'top 78%' },
-    })
-
-    gsap.from('.fenix-benefit', {
+    gsap.from('.espacio-head .reveal-target', {
       opacity: 0,
       y: 32,
-      stagger: 0.12,
+      stagger: 0.1,
       duration: 0.9,
-      ease: 'cubic-bezier(0.23, 1, 0.32, 1)',
-      scrollTrigger: { trigger: '.fenix-grid', start: 'top 82%' },
+      ease: 'power3.out',
+      scrollTrigger: { trigger: sectionRef.current, start: 'top 72%' },
     })
 
-    gsap.from('.fenix-foot .reveal-target', {
+    gsap.from('.espacio-subhead', {
       opacity: 0,
       y: 24,
+      duration: 0.8,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: '.espacio-subhead', start: 'top 82%' },
+    })
+
+    gsap.from('.espacio-benefit', {
+      opacity: 0,
+      y: 30,
+      stagger: 0.1,
+      duration: 0.85,
+      ease: 'cubic-bezier(0.23, 1, 0.32, 1)',
+      scrollTrigger: { trigger: '.espacio-grid', start: 'top 82%' },
+    })
+
+    gsap.from('.espacio-foot > *', {
+      opacity: 0,
+      y: 22,
       stagger: 0.08,
       duration: 0.8,
       ease: 'power2.out',
-      scrollTrigger: { trigger: '.fenix-foot', start: 'top 88%' },
+      scrollTrigger: { trigger: '.espacio-foot', start: 'top 88%' },
     })
   }, [])
 
   return (
-    <section ref={sectionRef} className="espacio" aria-labelledby="espacio-heading">
-      <div className="espacio-stage">
-        <video
-          ref={videoRef}
-          className="espacio-video"
-          src="/assets/videos/fenix-instalaciones.mp4"
-          muted
-          loop
-          playsInline
-          autoPlay
-          preload="metadata"
-          poster=""
-          aria-hidden="true"
-        />
-        <div className="espacio-overlay" aria-hidden="true" />
-        <div className="espacio-content">
-          <span className="espacio-eyebrow section-label">El Espacio</span>
-          <h2 className="espacio-title section-title" id="espacio-heading">
-            Un espacio diseñado para tu evolución.
+    <section
+      ref={sectionRef}
+      id="fenix"
+      className="espacio"
+      aria-labelledby="espacio-heading"
+    >
+      <video
+        ref={videoRef}
+        className="espacio-video"
+        src="/assets/videos/fenix-instalaciones.mp4"
+        muted
+        loop
+        playsInline
+        autoPlay
+        preload="metadata"
+        aria-hidden="true"
+      />
+      <div className="espacio-overlay" aria-hidden="true" />
+      <div className="espacio-grain" aria-hidden="true" />
+
+      <div className="espacio-content">
+        <div className="espacio-head">
+          <span className="espacio-eyebrow section-label reveal-target">
+            Depilación Láser en NOVA · Tecnología FENIX
+          </span>
+          <h2 className="espacio-title section-title reveal-target" id="espacio-heading">
+            Evolución Tecnológica:
+            <em className="espacio-title-accent">La Ciencia Detrás de Tu Libertad.</em>
           </h2>
-          <p className="espacio-sub">
-            Tecnología <strong>Fenix 4</strong> y estándar sanitario premium en el corazón de Cali. Un protocolo donde cada detalle del entorno comunica el nivel del resultado.
+          <p className="espacio-intro reveal-target">
+            En NOVA respetamos y transformamos tu piel con <strong>FENIX</strong>, el láser diodo biomédico que combina <strong>4 longitudes de onda</strong> en una sola sesión. No es estética genérica: es ciencia adaptada a cada fototipo, cada zona, cada cliente.
           </p>
+        </div>
+
+        <h3 className="espacio-subhead">
+          ¿Por qué FENIX es el nuevo estándar en Cali?
+        </h3>
+
+        <ul className="espacio-grid" role="list">
+          {FENIX_BENEFITS.map((b) => (
+            <li className="espacio-benefit" key={b.title}>
+              <span className="espacio-benefit-icon" aria-hidden="true">{b.icon}</span>
+              <h4 className="espacio-benefit-title">{b.title}</h4>
+              <p className="espacio-benefit-body">{b.body}</p>
+            </li>
+          ))}
+        </ul>
+
+        <div className="espacio-foot">
           <a
             href="#quiz"
-            className="btn-outline espacio-cta"
+            className="btn-primary espacio-cta"
             onClick={(e) => scrollToId('quiz', e)}
           >
-            Iniciar mi Diagnóstico Premium
+            Reservar mi Diagnóstico Premium de Cortesía
             <ArrowIcon />
           </a>
-        </div>
-      </div>
-
-      {/* ============== FENIX TECH BLOCK ============== */}
-      <div ref={fenixRef} className="fenix-block" id="fenix">
-        <div className="fenix-inner">
-          <div className="fenix-head">
-            <span className="section-label reveal-target">
-              Depilación Láser en NOVA — Tecnología FENIX
-            </span>
-            <h2 className="fenix-title section-title reveal-target">
-              Evolución Tecnológica: <br />
-              <em className="fenix-title-accent">La Ciencia Detrás de Tu Libertad.</em>
-            </h2>
-            <p className="fenix-intro reveal-target">
-              En NOVA respetamos y transformamos tu piel con <strong>FENIX</strong>, el láser diodo biomédico que combina <strong>4 longitudes de onda</strong> en una sola sesión. No es estética genérica: es ciencia adaptada a cada fototipo, cada zona, cada cliente.
-            </p>
-          </div>
-
-          <h3 className="fenix-subhead reveal-target">
-            ¿Por qué FENIX es el nuevo estándar en Cali?
-          </h3>
-
-          <ul className="fenix-grid" role="list">
-            {FENIX_BENEFITS.map((b) => (
-              <li className="fenix-benefit" key={b.title}>
-                <span className="fenix-benefit-icon" aria-hidden="true">{b.icon}</span>
-                <h4 className="fenix-benefit-title">{b.title}</h4>
-                <p className="fenix-benefit-body">{b.body}</p>
-              </li>
-            ))}
-          </ul>
-
-          <div className="fenix-foot">
-            <a
-              href="#quiz"
-              className="btn-primary fenix-cta reveal-target"
-              onClick={(e) => scrollToId('quiz', e)}
-            >
-              Reservar mi Diagnóstico Premium de Cortesía
-              <ArrowIcon />
-            </a>
-            <p className="fenix-foot-note reveal-target">
-              Evaluación científica de tu piel en 2 minutos · Cupos VIP limitados.
-            </p>
-          </div>
+          <p className="espacio-foot-note">
+            Evaluación científica de tu piel en 2 minutos · Cupos VIP limitados.
+          </p>
         </div>
       </div>
     </section>
