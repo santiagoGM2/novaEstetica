@@ -212,39 +212,20 @@ function TestimonialsCarousel({ items }) {
 }
 
 function ProcedureMedia() {
-  const videoRef = useRef(null)
-
-  // Always autoplay loop. Pause when off-screen to save decode work.
-  useEffect(() => {
-    const v = videoRef.current
-    if (!v) return
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) v.play().catch(() => {})
-        else v.pause()
-      },
-      { threshold: 0.1 }
-    )
-    io.observe(v)
-    return () => io.disconnect()
-  }, [])
-
   return (
     <div className="proof-media">
-      <video
-        ref={videoRef}
+      <img
         className="proof-media-video"
-        src="/assets/videos/procedimiento-nova.mp4"
-        muted
-        loop
-        playsInline
-        autoPlay
-        preload="metadata"
-        aria-label="Procedimiento de depilación láser en Nova Aesthetic Professionals"
+        src="/assets/imagenhero/procedimiento-real.webp"
+        alt="Profesional NOVA realizando sesión de depilación láser Fenix 4 a una clienta en Cali"
+        loading="lazy"
+        decoding="async"
+        width="540"
+        height="720"
       />
       <div className="proof-media-overlay" aria-hidden="true">
-        <span className="proof-media-label">Procedimiento real</span>
-        <span className="proof-media-cta">Sesión Fenix 4 · Nova Aesthetic Professionals</span>
+        <span className="proof-media-label">Sesión real</span>
+        <span className="proof-media-cta">Protocolo Fenix 4 · Nova Aesthetic Professionals</span>
       </div>
     </div>
   )

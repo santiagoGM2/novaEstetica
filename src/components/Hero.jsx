@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { scrollToId } from '../lib/scrollTo'
 import { ArrowIcon } from '../lib/icons'
@@ -6,10 +6,10 @@ import { gsap, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
 
 export default function Hero() {
   const sectionRef = useRef(null)
+  const videoRef = useRef(null)
   const prefersReduced = useReducedMotion()
 
   // Variant factory — delays comprimidos para que el CTA aparezca a ~0.95s.
-  // Si el usuario prefiere reduced motion, todo aparece sin movimiento.
   const v = (delay) =>
     prefersReduced
       ? { hidden: { opacity: 1, y: 0 }, show: { opacity: 1, y: 0 } }
@@ -22,19 +22,35 @@ export default function Hero() {
           },
         }
 
-  // Image entrance: fade + scale-in lento que se acopla al Ken-Burns CSS
-  const imageVariants = prefersReduced
+  // Video entrance: fade + scale-in lento — la respiración cinematográfica
+  // viene del propio video reproduciéndose.
+  const videoVariants = prefersReduced
     ? { hidden: { opacity: 1, scale: 1 }, show: { opacity: 1, scale: 1 } }
     : {
-        hidden: { opacity: 0, scale: 1.06 },
+        hidden: { opacity: 0, scale: 1.04 },
         show: {
           opacity: 1,
           scale: 1,
-          transition: { duration: 1.4, ease: [0.23, 1, 0.32, 1] },
+          transition: { duration: 1.6, ease: [0.23, 1, 0.32, 1] },
         },
       }
 
-  // Parallax on scroll (sin animación de entrada — esa la hace motion)
+  // Pausa el video cuando está fuera de viewport para no quemar GPU
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) v.play().catch(() => {})
+        else v.pause()
+      },
+      { threshold: 0.05 }
+    )
+    io.observe(v)
+    return () => io.disconnect()
+  }, [])
+
+  // Parallax on scroll
   useGSAPScrollTrigger(sectionRef, () => {
     gsap.to('.hero-content', {
       yPercent: -8,
@@ -63,29 +79,24 @@ export default function Hero() {
     <section ref={sectionRef} className="hero" aria-labelledby="hero-heading">
       <div className="hero-bg" aria-hidden="true" />
 
-      <motion.picture
-        className="hero-image"
+      <motion.div
+        className="hero-image hero-image-video"
         aria-hidden="true"
-        variants={imageVariants}
+        variants={videoVariants}
         initial="hidden"
         animate="show"
       >
-        {/* Mobile: imagen vertical optimizada para portrait */}
-        <source
-          media="(max-width: 768px)"
-          srcSet="/assets/imagenhero/heronovamovil.webp"
-          type="image/webp"
+        <video
+          ref={videoRef}
+          src="/assets/videos/procedimiento-nova.mp4"
+          muted
+          loop
+          playsInline
+          autoPlay
+          preload="metadata"
+          aria-hidden="true"
         />
-        {/* Desktop/tablet: imagen horizontal con composición lateral */}
-        <source srcSet="/assets/imagenhero/hero-nova.webp" type="image/webp" />
-        <img
-          src="/assets/imagenhero/hero-nova.webp"
-          alt=""
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </motion.picture>
+      </motion.div>
 
       <div className="hero-overlay" aria-hidden="true" />
       <div className="hero-accent-line" aria-hidden="true" />
