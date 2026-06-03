@@ -31,7 +31,18 @@ const WHATSAPP_LINK = import.meta.env.VITE_WHATSAPP_LINK || null
 
 // Link específico para el botón post-diagnóstico (success state) — mensaje
 // que confirma a NOVA que la usuaria completó el quiz y espera su invitación VIP.
-const WHATSAPP_POSTDIAGNOSTIC = 'https://api.whatsapp.com/send?phone=573105725730&text=Hola%20NOVA%2C%20ya%20hice%20mi%20diagn%C3%B3stico%20y%20estoy%20a%20la%20espera%20de%20mi%20invitaci%C3%B3n%20VIP.'
+// El texto incluye dinámicamente la zona elegida en el paso 1; la frase
+// "invitación VIP" se mantiene SIEMPRE intacta porque GHL la usa como
+// marcador para detectar estos leads. Si la zona viniera vacía, se
+// envía el texto original como fallback.
+const WHATSAPP_POSTDIAGNOSTIC_PHONE = '573105725730'
+
+function buildPostDiagnosticLink(zone) {
+  const text = zone
+    ? `Hola NOVA, ya hice mi diagnóstico para depilación de ${zone} y estoy a la espera de mi invitación VIP.`
+    : 'Hola NOVA, ya hice mi diagnóstico y estoy a la espera de mi invitación VIP.'
+  return `https://api.whatsapp.com/send?phone=${WHATSAPP_POSTDIAGNOSTIC_PHONE}&text=${encodeURIComponent(text)}`
+}
 const MOCK_WEBHOOK = import.meta.env.DEV && !WEBHOOK_URL
 
 // Simple email validation — rechaza espacios, exige @ y al menos un .
@@ -354,7 +365,7 @@ export default function Quiz({ seed }) {
               El último paso para asegurar tus beneficios es notificarnos. Haz clic en el botón de abajo para activar tu acceso preferencial de inmediato.
             </p>
             <a
-              href={WHATSAPP_POSTDIAGNOSTIC}
+              href={buildPostDiagnosticLink(answers.zone)}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary quiz-success-cta"

@@ -202,8 +202,11 @@ async function testHappyPath(browser) {
 
   const cta = page.locator('.quiz-success-cta')
   const ctaHref = await cta.getAttribute('href').catch(() => null)
-  const expectedHref = 'https://api.whatsapp.com/send?phone=573105725730&text=Hola%20NOVA%2C%20ya%20hice%20mi%20diagn%C3%B3stico%20y%20estoy%20a%20la%20espera%20de%20mi%20invitaci%C3%B3n%20VIP.'
-  log('Success CTA apunta al link post-diagnóstico correcto',
+  // El zone elegido en este test es "Bikini" (ver completeSteps1to3 arriba),
+  // por lo que el link incluye "depilación de Bikini".
+  const expectedText = 'Hola NOVA, ya hice mi diagnóstico para depilación de Bikini y estoy a la espera de mi invitación VIP.'
+  const expectedHref = `https://api.whatsapp.com/send?phone=573105725730&text=${encodeURIComponent(expectedText)}`
+  log('Success CTA apunta al link post-diagnóstico con zona inyectada',
     ctaHref === expectedHref ? 'pass' : 'fail',
     `href: ${ctaHref}`)
 
