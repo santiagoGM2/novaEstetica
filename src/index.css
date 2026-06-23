@@ -306,33 +306,6 @@ input, textarea {
   opacity: 0.5;
 }
 
-.hero-scroll {
-  position: absolute;
-  bottom: 40px;
-  left: 48px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.hero-scroll-line {
-  width: 0.75px;
-  height: 48px;
-  background: linear-gradient(to bottom, var(--gold-dim), transparent);
-  animation: scroll-pulse 2s ease-in-out infinite;
-}
-@keyframes scroll-pulse {
-  0%, 100% { opacity: 0.3; transform: scaleY(1); transform-origin: top; }
-  50% { opacity: 0.8; transform: scaleY(1.2); transform-origin: top; }
-}
-.hero-scroll-text {
-  font-size: 0.58rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--text-3);
-  writing-mode: vertical-rl;
-}
-
 .hero-content {
   position: relative;
   z-index: 2;
@@ -1150,7 +1123,6 @@ input, textarea {
   .hero { padding: 112px 28px 80px; }
   .hero-arc { display: none; }
   .hero-location { right: 28px; }
-  .hero-scroll { left: 28px; }
 
   .conciencia { padding: 80px 28px; }
   .conciencia-head { grid-template-columns: 1fr; gap: 28px; margin-bottom: 52px; }
@@ -1182,7 +1154,6 @@ input, textarea {
    ============================================================ */
 @media (max-width: 600px) {
   .hero-title { font-size: 2.1rem; }
-  .hero-scroll { display: none; }
 
   .pain-point { padding-left: 44px; }
   .pain-point-num { font-size: 2.2rem; }

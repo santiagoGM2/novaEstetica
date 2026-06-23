@@ -103,11 +103,6 @@ export default function Hero() {
 
       <span className="hero-location" aria-hidden="true">Cali</span>
 
-      <div className="hero-scroll" aria-hidden="true">
-        <div className="hero-scroll-line" />
-        <span className="hero-scroll-text">Scroll</span>
-      </div>
-
       <div className="hero-content">
         <motion.span
           className="hero-pre"

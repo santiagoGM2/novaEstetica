@@ -303,8 +303,7 @@
   padding-right: clamp(20px, 4vw, 48px);
 }
 
-.hero .hero-location,
-.hero .hero-scroll {
+.hero .hero-location {
   z-index: 3;
 }
 
