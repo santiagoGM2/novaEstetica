@@ -1152,3 +1152,117 @@ img.proof-media-video {
   filter: brightness(1);
   transform: scale(1.025);
 }
+
+/* ============================================================
+   HERO trust list — versión VIP con check icons (reemplaza .hero-trust-dot)
+   Editorial vertical: acento dorado a la izquierda + check icons en círculo
+   dorado fino + tipografía con strong dorado para anclar los beneficios.
+   ============================================================ */
+.hero-trust.hero-trust-vip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 28px;
+  padding: 16px 0 14px 18px;
+  border-left: 0.75px solid rgba(224, 188, 126, 0.42);
+  flex-wrap: nowrap;
+}
+.hero-trust-vip li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--ff-sans);
+  font-size: 0.84rem;
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  color: var(--text-primary);
+  line-height: 1.35;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+.hero-trust-vip li strong {
+  color: var(--cream);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+.hero-trust-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(224, 188, 126, 0.14);
+  border: 0.75px solid rgba(224, 188, 126, 0.55);
+  color: var(--gold-bright);
+  flex-shrink: 0;
+  box-shadow: 0 0 14px rgba(224, 188, 126, 0.18);
+}
+.hero-trust-check svg {
+  display: block;
+  stroke: currentColor;
+  stroke-width: 2.4;
+}
+
+@media (max-width: 600px) {
+  .hero-trust.hero-trust-vip {
+    gap: 9px;
+    margin-top: 24px;
+    padding: 14px 0 12px 14px;
+  }
+  .hero-trust-vip li { font-size: 0.78rem; gap: 10px; }
+  .hero-trust-check { width: 20px; height: 20px; }
+}
+
+/* ============================================================
+   FAB WHATSAPP — siempre visible, más prominente, pulse-ring
+   - Altura +23% (52 → 64px) y padding más generoso
+   - Pulse-ring que respira (box-shadow expandiéndose) para atraer atención
+     sin invadir; no usa transform-scale para no chocar con :active scale(0.97)
+   - Honra prefers-reduced-motion
+   ============================================================ */
+.fab-wa.fab-wa-prominent {
+  position: relative;
+  height: 64px;
+  padding: 0 24px;
+  border-radius: 32px;
+  box-shadow:
+    0 8px 28px oklch(35% 0.09 155 / 0.42),
+    0 2px 8px oklch(35% 0.09 155 / 0.30);
+}
+.fab-wa-prominent .fab-icon,
+.fab-wa-prominent .fab-icon svg {
+  width: 26px;
+  height: 26px;
+}
+.fab-wa-prominent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 oklch(35% 0.09 155 / 0.55);
+  animation: fab-wa-pulse 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes fab-wa-pulse {
+  0%   { box-shadow: 0 0 0 0    oklch(35% 0.09 155 / 0.55); }
+  70%  { box-shadow: 0 0 0 22px oklch(35% 0.09 155 / 0);    }
+  100% { box-shadow: 0 0 0 0    oklch(35% 0.09 155 / 0);    }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fab-wa-prominent::before { animation: none; }
+}
+
+@media (max-width: 600px) {
+  .fab-wa.fab-wa-prominent {
+    height: 58px;
+    padding: 0 20px;
+    border-radius: 29px;
+  }
+  .fab-wa-prominent .fab-icon,
+  .fab-wa-prominent .fab-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+}

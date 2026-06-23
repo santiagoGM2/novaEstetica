@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { scrollToId } from '../lib/scrollTo'
-import { ArrowIcon } from '../lib/icons'
+import { ArrowIcon, CheckIcon } from '../lib/icons'
 import { gsap, useGSAPScrollTrigger } from '../hooks/useGSAPScrollTrigger'
 
 export default function Hero() {
@@ -156,20 +156,35 @@ export default function Hero() {
           whileHover={prefersReduced ? undefined : { scale: 1.02 }}
           transition={prefersReduced ? undefined : { type: 'spring', stiffness: 320, damping: 22 }}
         >
-          Iniciar mi Diagnóstico de Piel Premium
+          Quiero activar mi Invitación VIP
           <ArrowIcon />
         </motion.a>
 
         <motion.ul
-          className="hero-trust"
+          className="hero-trust hero-trust-vip"
           variants={v(1.15)}
           initial="hidden"
           animate="show"
-          aria-label="Garantías iniciales"
+          aria-label="Beneficios de la Invitación VIP"
         >
-          <li><span className="hero-trust-dot" aria-hidden="true" />Sin compromiso</li>
-          <li><span className="hero-trust-dot" aria-hidden="true" />60 segundos</li>
-          <li><span className="hero-trust-dot" aria-hidden="true" />100% privado</li>
+          <li>
+            <span className="hero-trust-check" aria-hidden="true">
+              <CheckIcon width={13} height={13} />
+            </span>
+            <span>Valoración premium <strong>gratuita</strong>, sin compromiso</span>
+          </li>
+          <li>
+            <span className="hero-trust-check" aria-hidden="true">
+              <CheckIcon width={13} height={13} />
+            </span>
+            <span>Precios y descuentos <strong>exclusivos VIP</strong></span>
+          </li>
+          <li>
+            <span className="hero-trust-check" aria-hidden="true">
+              <CheckIcon width={13} height={13} />
+            </span>
+            <span><strong>Hidratación facial</strong> de cortesía con tu paquete</span>
+          </li>
         </motion.ul>
       </div>
     </section>
